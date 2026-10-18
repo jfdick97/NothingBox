@@ -91,7 +91,7 @@ fun App(model:AppModel){
     } else {
         Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
             TopAppBar(
-                title = { Text("Eine Woche im Blick", fontFamily = Garamond) },
+                title = { Text("My Nothing Box Strain Gauge", fontFamily = Garamond) },
                 navigationIcon = {
                     if (model.screen != Screen.DASHBOARD)
                         AppIconButton(
@@ -705,7 +705,7 @@ fun Settings(model:AppModel){
         Text("Öffnet ein künstlich ausgefülltes Blatt in der Scan-Prüfung. Erst Speichern übernimmt die Testwerte.",style=MaterialTheme.typography.bodySmall)
         Text("Vorlage: OnePager · linke Seite",style=MaterialTheme.typography.titleMedium)
         Text("Die neue OnePager-Vorlage wird anhand gedruckter Merkmale und aller vier L-Marken ausgerichtet. Die Punkte in den gestrichelten Kästchen liefern kontinuierliche Werte. Die frühere BC-02-Vorlage wird weiterhin erkannt.")
-        Text("Version 1.2.0 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
+        Text("Version 1.2.1 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
     }
     if (model.showDeleteOptions) {
         AlertDialog(

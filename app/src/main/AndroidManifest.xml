@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
-    <application android:theme="@style/Theme.StrainGauge" android:label="Eine Woche im Blick"
+    <application android:theme="@style/Theme.StrainGauge" android:label="NothingBox"
         android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher"
         android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="false"
         android:allowBackup="false" android:supportsRtl="true">
