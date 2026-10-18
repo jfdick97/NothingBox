@@ -18,7 +18,7 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import org.json.JSONArray
 
-enum class Screen { DASHBOARD, CAMERA, REVIEW, SETTINGS, HISTORY }
+enum class Screen { DASHBOARD, CAMERA, REVIEW, SETTINGS, HISTORY, ENTRIES }
 class AppModel(app: Application): AndroidViewModel(app) {
     val db=AppDatabase.open(app)
     private val store=db.store()

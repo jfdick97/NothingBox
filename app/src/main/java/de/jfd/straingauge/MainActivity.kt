@@ -131,11 +131,20 @@ fun App(model:AppModel){
         }) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 when (model.screen) {
-                    Screen.DASHBOARD -> Dashboard(days, onEdit = { edit = it })
+                    Screen.DASHBOARD -> Dashboard(
+                        all = days,
+                        onOpenEntries = {
+                            model.screen = Screen.ENTRIES
+                        }
+                    )
                     Screen.CAMERA -> Unit
                     Screen.REVIEW -> Review(model, onPhoto = { photo = it })
                     Screen.SETTINGS -> Settings(model)
                     Screen.HISTORY -> History(scans, model, onPhoto = { photo = it })
+                    Screen.ENTRIES -> EntriesScreen(
+                        days = days.sortedByDescending { it.date },
+                        onEdit = { edit = it }
+                    )
                 }
             }
         }
@@ -169,7 +178,7 @@ fun App(model:AppModel){
 }
 
 @Composable
-fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
+fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
     val metricColors = metricColorsForTheme()
     var period by rememberSaveable{mutableIntStateOf(28)}
     var weekOffset by rememberSaveable{mutableIntStateOf(0)}
@@ -289,21 +298,150 @@ fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(label,modifier=Modifier.weight(1f));Text("$count Tage")}
             }
         }
-        if(days.isNotEmpty()){
-            Text("Einträge bearbeiten",style=MaterialTheme.typography.titleLarge,fontFamily=FontFamily.Serif)
-            Text("Reihenfolge: Anforderungen / Anspannung / Energie / Handlungsspielraum",style=MaterialTheme.typography.labelSmall)
-            days.asReversed().forEach{d ->
-                OutlinedCard(onClick={onEdit(d)},modifier=Modifier.fillMaxWidth()){
-                    Column(Modifier.padding(14.dp)){
-                        Text(displayDate(d.date),fontWeight=FontWeight.Bold)
-                        Text(d.values().joinToString("   /   "){number(it)})
-                    }
-                }
+        if (all.isNotEmpty()) {
+            OutlinedButton(
+                onClick = onOpenEntries,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Einträge bearbeiten")
             }
         }
         Spacer(Modifier.height(100.dp))
     }
 }
+
+@Composable
+fun EntriesScreen(
+    days: List<DayEntry>,
+    onEdit: (DayEntry) -> Unit
+) {
+    var weekOffset by rememberSaveable {
+        mutableIntStateOf(0)
+    }
+
+    val selectedWeek = monday().plusWeeks(weekOffset.toLong())
+    val weekEnd = selectedWeek.plusDays(6)
+
+    val weekDays = days
+        .filter {
+            val date = LocalDate.parse(it.date)
+            date >= selectedWeek && date <= weekEnd
+        }
+        .sortedBy { it.date }
+
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Text(
+                text = "Einträge bearbeiten",
+                fontFamily = FontFamily.Serif,
+                style = MaterialTheme.typography.headlineLarge
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(
+                    onClick = { weekOffset-- }
+                ) {
+                    Text("←")
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "${selectedWeek.format(german)} –",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = weekEnd.format(german),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+
+                TextButton(
+                    onClick = { weekOffset++ }
+                ) {
+                    Text("→")
+                }
+            }
+        }
+
+        if (weekOffset != 0) {
+            item {
+                TextButton(
+                    onClick = { weekOffset = 0 }
+                ) {
+                    Text("Zur aktuellen Woche")
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "Tippe auf einen Tag, um seine Werte zu ändern.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        if (weekDays.isEmpty()) {
+            item {
+                Text("Für diese Woche sind keine Einträge vorhanden.")
+            }
+        } else {
+            item {
+                Text(
+                    text = "Anforderungen / Anspannung / " +
+                            "Energie / Handlungsspielraum",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
+        items(
+            count = weekDays.size,
+            key = { index -> weekDays[index].date }
+        ) { index ->
+            val day = weekDays[index]
+
+            OutlinedCard(
+                onClick = { onEdit(day) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = LocalDate.parse(day.date).format(
+                            DateTimeFormatter.ofPattern(
+                                "EEEE, dd.MM.yyyy",
+                                Locale.GERMANY
+                            )
+                        ),
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = day.values().joinToString(" / ") {
+                            number(it)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun TrendCard(assessment: TrendAssessment) {
