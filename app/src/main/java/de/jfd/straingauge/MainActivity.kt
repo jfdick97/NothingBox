@@ -146,11 +146,58 @@ fun App(model:AppModel){
                     Screen.SETTINGS -> Settings(model)
                     Screen.HISTORY -> History(scans, model, onPhoto = { photo = it })
                     Screen.ENTRIES -> EntriesScreen(
-                        days = days.sortedByDescending { it.date },
-                        onEdit = { edit = it }
+                        days = days,
+                        onEdit = {
+                            edit = it
+                        },
+                        onDeleteWeek = {
+                            model.weekPendingDeletion = it.toString()
+                        }
                     )
                 }
             }
+        }
+
+        model.weekPendingDeletion?.let { value ->
+            val selectedWeek = LocalDate.parse(value)
+
+            AlertDialog(
+                onDismissRequest = {
+                    model.weekPendingDeletion = null
+                },
+                title = {
+                    Text("Woche löschen?")
+                },
+                text = {
+                    Text(
+                        "${weekRangeLabel(selectedWeek)}\n\n" +
+                                "Alle Tageswerte dieser Woche werden gelöscht. " +
+                                "Zugehörige Scans werden ebenfalls gelöscht, " +
+                                "sofern keine anderen Tageswerte sie verwenden.\n\n" +
+                                "Eine Sicherung kannst du vorher im Menü exportieren."
+                    )
+                },
+                confirmButton = {
+                    AppIconButton(
+                        icon = Icons.Filled.DeleteForever,
+                        label = "Woche endgültig löschen",
+                        onClick = {
+                            model.deleteWeek(selectedWeek)
+                        },
+                        enabled = !model.busy,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                dismissButton = {
+                    AppIconButton(
+                        icon = Icons.Filled.Close,
+                        label = "Abbrechen",
+                        onClick = {
+                            model.weekPendingDeletion = null
+                        }
+                    )
+                }
+            )
         }
     }
     model.message?.let{message -> AlertDialog(onDismissRequest={model.message=null},title={Text("Hinweis")},text={Text(message)},confirmButton={TextButton(onClick={model.message=null}){Text("OK")}})}
@@ -185,7 +232,9 @@ fun App(model:AppModel){
 fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
     val metricColors = metricColorsForTheme()
     var period by rememberSaveable{mutableIntStateOf(28)}
-    var weekOffset by rememberSaveable{mutableIntStateOf(0)}
+    var selectedWeekText by rememberSaveable {
+        mutableStateOf(monday().toString())
+    }
     val today=LocalDate.now()
     val trendAssessment = remember(all, today) {
         assessTrends(all, today)
@@ -228,7 +277,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                 }
             }
         }
-        val selectedWeek=monday().plusWeeks(weekOffset.toLong())
+        val selectedWeek = LocalDate.parse(selectedWeekText)
         val weekDays=all.filter{LocalDate.parse(it.date)>=selectedWeek && LocalDate.parse(it.date)<=selectedWeek.plusDays(6)}
         Card(colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -236,11 +285,12 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
         )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
                 Text("Wochenstatistik",fontFamily=Garamond,style=MaterialTheme.typography.titleLarge)
-                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
-                    TextButton(onClick={weekOffset--}){Text("←")}
-                    Text("Ab ${selectedWeek.format(german)}")
-                    TextButton(onClick={weekOffset++}){Text("→")}
-                }
+                WeekSelector(
+                    selectedMonday = selectedWeek,
+                    onWeekSelected = {
+                        selectedWeekText = it.toString()
+                    }
+                )
                 metricNames.forEachIndexed { m, name ->
                     val values = weekDays.mapNotNull {
                         it.values()[m]
@@ -317,13 +367,14 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
 @Composable
 fun EntriesScreen(
     days: List<DayEntry>,
-    onEdit: (DayEntry) -> Unit
+    onEdit: (DayEntry) -> Unit,
+    onDeleteWeek: (LocalDate) -> Unit
 ) {
-    var weekOffset by rememberSaveable {
-        mutableIntStateOf(0)
+    var selectedWeekText by rememberSaveable {
+        mutableStateOf(monday().toString())
     }
 
-    val selectedWeek = monday().plusWeeks(weekOffset.toLong())
+    val selectedWeek = LocalDate.parse(selectedWeekText)
     val weekEnd = selectedWeek.plusDays(6)
 
     val weekDays = days
@@ -347,61 +398,47 @@ fun EntriesScreen(
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(
-                    onClick = { weekOffset-- }
-                ) {
-                    Text("←")
+            WeekSelector(
+                selectedMonday = selectedWeek,
+                onWeekSelected = {
+                    selectedWeekText = it.toString()
                 }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "${selectedWeek.format(german)} –",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Text(
-                        text = weekEnd.format(german),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-
-                TextButton(
-                    onClick = { weekOffset++ }
-                ) {
-                    Text("→")
-                }
-            }
-        }
-
-        if (weekOffset != 0) {
-            item {
-                TextButton(
-                    onClick = { weekOffset = 0 }
-                ) {
-                    Text("Zur aktuellen Woche")
-                }
-            }
+            )
         }
 
         item {
-            Text(
-                text = "Tippe auf einen Tag, um seine Werte zu ändern.",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${weekDays.size} erfasste Tage",
+                    modifier = Modifier.weight(1f)
+                )
+
+                AppIconButton(
+                    icon = Icons.Filled.DeleteOutline,
+                    label = "Ausgewählte Woche löschen",
+                    onClick = {
+                        onDeleteWeek(selectedWeek)
+                    },
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         if (weekDays.isEmpty()) {
             item {
-                Text("Für diese Woche sind keine Einträge vorhanden.")
+                Text("Für diese Woche sind keine Tageswerte vorhanden.")
             }
         } else {
+            item {
+                Text(
+                    text = "Tag zum Bearbeiten antippen.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             item {
                 Text(
                     text = "Anforderungen / Anspannung / " +
@@ -413,7 +450,7 @@ fun EntriesScreen(
 
         items(
             count = weekDays.size,
-            key = { index -> weekDays[index].date }
+            key = { weekDays[it].date }
         ) { index ->
             val day = weekDays[index]
 
@@ -590,10 +627,22 @@ fun Review(model:AppModel,onPhoto:(File)->Unit){
         LocalPhoto(file,Modifier.fillMaxWidth().height(230.dp).clickable{onPhoto(file)})
         Text("Foto antippen zum Vergrößern und Zoomen.",style=MaterialTheme.typography.labelSmall)
         if(scan.warnings.isNotEmpty()){
-            OutlinedButton(onClick={showWarnings=!showWarnings}){Text("${scan.warnings.size} Hinweise ${if(showWarnings)"verbergen" else "anzeigen"}")}
+            WeekSelector(
+                selectedMonday = LocalDate.parse(model.week),
+                onWeekSelected = {
+                    model.changeWeek(it.toString())
+                },
+                enabled = !model.busy
+            )
             if(showWarnings)scan.warnings.forEach{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
         }
-        OutlinedTextField(value=model.week,onValueChange=model::changeWeek,label={Text("Montag der Woche (JJJJ-MM-TT)")},singleLine=true,modifier=Modifier.fillMaxWidth())
+        WeekSelector(
+            selectedMonday = LocalDate.parse(model.week),
+            onWeekSelected = { selectedMonday ->
+                model.changeWeek(selectedMonday.toString())
+            },
+            enabled = !model.busy
+        )
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
             dayLabels.forEachIndexed{d,label -> FilterChip(selected=selected==d,onClick={selected=d},label={Text(label)})}
         }

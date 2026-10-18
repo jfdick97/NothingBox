@@ -39,6 +39,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
     var saveConflicts by mutableStateOf<List<String>?>(null)
     var archive by mutableStateOf<Archive?>(null)
     var importConflicts by mutableStateOf<List<String>>(emptyList())
+    var weekPendingDeletion by mutableStateOf<String?>(null)
     private var importedValues=emptyList<DayEntry>()
     fun runJob(action: suspend ()->Unit) {
         if(busy)return
@@ -71,6 +72,77 @@ class AppModel(app: Application): AndroidViewModel(app) {
         clearDraft();draft=result
         editedValues=(0..6).map { d -> (0..3).map { m -> result.values[m][d] } }
         editedFactors=result.factors;editedCustom1="";editedCustom2="";changeWeek(monday().toString());screen=Screen.REVIEW
+    }
+    fun deleteWeek(selectedMonday: LocalDate) = runJob {
+        weekPendingDeletion = null
+        message = null
+
+        val start = selectedMonday.with(
+            TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
+        )
+        val end = start.plusDays(6)
+
+        var deletedDays = 0
+        var deletedScans = 0
+        var failedPhotos = 0
+
+        withContext(Dispatchers.IO) {
+            val removed = db.withTransaction {
+                val count = store.deleteDaysInRange(
+                    start.toString(),
+                    end.toString()
+                )
+
+                val remainingScanIds = store.days()
+                    .mapNotNull { it.scanId }
+                    .toSet()
+
+                val scansToRemove = store.scans().filter {
+                    it.weekStart == start.toString() &&
+                            it.id !in remainingScanIds
+                }
+
+                scansToRemove.forEach {
+                    store.deleteScan(it.id)
+                }
+
+                count to scansToRemove
+            }
+
+            deletedDays = removed.first
+            deletedScans = removed.second.size
+
+            // Dateien schützen, die noch von einem anderen Scan
+            // verwendet werden.
+            val retainedFiles = store.scans()
+                .flatMap { listOf(it.original, it.aligned) }
+                .toSet()
+
+            val photosToRemove = removed.second
+                .flatMap { listOf(it.original, it.aligned) }
+                .distinct()
+                .filter { it !in retainedFiles }
+
+            val directory = File(
+                getApplication<Application>().filesDir,
+                "scans"
+            )
+
+            photosToRemove.forEach { name ->
+                val file = File(directory, name)
+
+                if (file.exists() && !file.delete()) {
+                    failedPhotos++
+                }
+            }
+        }
+
+        message =
+            "Woche gelöscht: $deletedDays Tage und $deletedScans Scans."
+
+        if (failedPhotos > 0) {
+            message = message + " $failedPhotos Foto-Dateien konnten nicht gelöscht werden."
+        }
     }
     fun testScan() = runJob {
         val f=withContext(Dispatchers.IO){File.createTempFile("test-",".jpg",getApplication<Application>().cacheDir).also { file ->
