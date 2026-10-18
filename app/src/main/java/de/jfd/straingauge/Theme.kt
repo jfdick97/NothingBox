@@ -52,37 +52,48 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF9DD2C4),
-    onPrimary = Color(0xFF00382F),
-    primaryContainer = Color(0xFF245047),
-    onPrimaryContainer = Color(0xFFBBECDD),
+    primary = Color(0xFFA7C8E2),
+    onPrimary = Color(0xFF142D40),
+    primaryContainer = Color(0xFF405B70),
+    onPrimaryContainer = Color(0xFFDFEEFA),
 
-    secondary = Color(0xFFB6CCC3),
-    onSecondary = Color(0xFF243830),
-    secondaryContainer = Color(0xFF263B35),
-    onSecondaryContainer = Color(0xFFDEEAE3),
+    secondary = Color(0xFFB4C7D6),
+    onSecondary = Color(0xFF203442),
+    secondaryContainer = Color(0xFF293E50),
+    onSecondaryContainer = Color(0xFFDFEAF3),
 
-    background = Color(0xFF141A18),
-    onBackground = Color(0xFFE4EAE5),
-    surface = Color(0xFF141A18),
-    onSurface = Color(0xFFE4EAE5),
-    onSurfaceVariant = Color(0xFFBBC7C0),
+    tertiary = Color(0xFFD3BEDD),
+    onTertiary = Color(0xFF392744),
+    tertiaryContainer = Color(0xFF51405C),
+    onTertiaryContainer = Color(0xFFF0DCF9),
 
-    surfaceContainerLowest = Color(0xFF0E1412),
-    surfaceContainerLow = Color(0xFF1C2420),
-    surfaceContainer = Color(0xFF222B26),
-    surfaceContainerHigh = Color(0xFF2C352F),
-    surfaceContainerHighest = Color(0xFF364039),
+    background = Color(0xFF121A21),
+    onBackground = Color(0xFFE4EAF0),
 
-    outline = Color(0xFF8B9990),
-    outlineVariant = Color(0xFF435048),
+    surface = Color(0xFF121A21),
+    onSurface = Color(0xFFE4EAF0),
+    surfaceVariant = Color(0xFF35434F),
+    onSurfaceVariant = Color(0xFFBCC9D4),
+
+    surfaceContainerLowest = Color(0xFF0D141A),
+    surfaceContainerLow = Color(0xFF19252F),
+    surfaceContainer = Color(0xFF202E39),
+    surfaceContainerHigh = Color(0xFF293845),
+    surfaceContainerHighest = Color(0xFF334451),
+
+    outline = Color(0xFF899CAB),
+    outlineVariant = Color(0xFF405260),
+
+    inverseSurface = Color(0xFFE4EAF0),
+    inverseOnSurface = Color(0xFF27323B),
+    inversePrimary = Color(0xFF405B70),
 
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A),
     onErrorContainer = Color(0xFFFFDAD6),
 
-    surfaceTint = Color(0xFF9DD2C4)
+    surfaceTint = Color(0xFFA7C8E2)
 )
 
 @Composable
