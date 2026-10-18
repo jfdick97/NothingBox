@@ -327,7 +327,10 @@ fun History(scans:List<ScanEntry>,model:AppModel,onPhoto:(File)->Unit){
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Text("Deine Scans",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
         if(scans.isEmpty())Text("Noch keine Scans gespeichert.")
-        scans.forEach{s -> Card(colors=CardDefaults.cardColors(containerColor=Color.White)){
+        scans.forEach{s -> Card(colors=CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
                 Text("Woche ab ${displayDate(s.weekStart)}",style=MaterialTheme.typography.titleMedium)
                 Text(s.template,style=MaterialTheme.typography.labelSmall)
