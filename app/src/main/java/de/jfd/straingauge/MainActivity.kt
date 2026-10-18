@@ -85,7 +85,7 @@ fun App(model:AppModel){
     } else {
         Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
             TopAppBar(
-                title = { Text("Eine Woche im Blick", fontFamily = FontFamily.Serif) },
+                title = { Text("Eine Woche im Blick", fontFamily = Garamond) },
                 navigationIcon = {
                     if (model.screen != Screen.DASHBOARD)
                         AppIconButton(
@@ -195,7 +195,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
     val days=all.filter{LocalDate.parse(it.date)>=start && LocalDate.parse(it.date)<=end}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Spacer(Modifier.height(4.dp))
-        Text("Dein Verlauf",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
+        Text("Dein Verlauf",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
         Text("Was fordert dich? Was trägt dich?",color=MaterialTheme.colorScheme.onSurfaceVariant)
         TrendCard(trendAssessment)
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
@@ -235,7 +235,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-                Text("Wochenstatistik",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.titleLarge)
+                Text("Wochenstatistik",fontFamily=Garamond,style=MaterialTheme.typography.titleLarge)
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
                     TextButton(onClick={weekOffset--}){Text("←")}
                     Text("Ab ${selectedWeek.format(german)}")
@@ -297,7 +297,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
         }
         val counts=days.flatMap{it.selectedFactors()}.groupingBy{it}.eachCount()
         if(counts.isNotEmpty()){
-            Text("Belastungsfaktoren",style=MaterialTheme.typography.titleLarge,fontFamily=FontFamily.Serif)
+            Text("Belastungsfaktoren",style=MaterialTheme.typography.titleLarge,fontFamily=Garamond)
             counts.entries.sortedByDescending{it.value}.forEach{(label,count) ->
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(label,modifier=Modifier.weight(1f));Text("$count Tage")}
             }
@@ -341,7 +341,7 @@ fun EntriesScreen(
         item {
             Text(
                 text = "Einträge bearbeiten",
-                fontFamily = FontFamily.Serif,
+                fontFamily = Garamond,
                 style = MaterialTheme.typography.headlineLarge
             )
         }
@@ -476,7 +476,7 @@ fun TrendCard(assessment: TrendAssessment) {
         ) {
             Text(
                 text = "Trends im Blick",
-                fontFamily = FontFamily.Serif,
+                fontFamily = Garamond,
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -580,7 +580,7 @@ fun Review(model:AppModel,onPhoto:(File)->Unit){
     var original by rememberSaveable{mutableStateOf(false)}
     var showWarnings by remember{mutableStateOf(false)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-        Text("Erkennen. Prüfen. Übernehmen.",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineSmall)
+        Text("Erkennen. Prüfen. Übernehmen.",fontFamily=Garamond,style=MaterialTheme.typography.headlineSmall)
         Text(if(scan.templateId=="MNB-01/left")"OnePager · Linke Seite · Punktpositionen 0–10. Grün: erkannt; Orange: mehrdeutig. Werte bitte prüfen." else "BC-02 / Seite 1 · Kreismarkierungen 0–10. Werte bitte prüfen.")
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
             FilterChip(selected=!original,onClick={original=false},label={Text("Erkennung")})
@@ -645,7 +645,7 @@ fun Settings(model:AppModel){
         }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        Text("Deine Daten",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
+        Text("Deine Daten",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
         Text("Verarbeitung und Speicherung erfolgen auf diesem Smartphone. Die App benötigt keinen Internetzugang und erstellt keine automatische Cloud-Sicherung.")
         Button(onClick={exportZip.launch("Wochenblick-${LocalDate.now()}.zip")},modifier=Modifier.fillMaxWidth()){Text("Vollständige Sicherung exportieren")}
         OutlinedButton(onClick={importZip.launch(arrayOf("application/zip","application/octet-stream"))},modifier=Modifier.fillMaxWidth()){Text("Sicherung importieren")}
@@ -791,7 +791,7 @@ fun History(scans:List<ScanEntry>,model:AppModel,onPhoto:(File)->Unit){
     val context=LocalContext.current
     var deleting by remember{mutableStateOf<ScanEntry?>(null)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        Text("Deine Scans",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
+        Text("Deine Scans",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
         if(scans.isEmpty())Text("Noch keine Scans gespeichert.")
         scans.forEach{s -> Card(colors=CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

@@ -10,6 +10,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+
+val Garamond = FontFamily(
+    Font(R.font.eb_garamond)
+)
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF3D7772),
