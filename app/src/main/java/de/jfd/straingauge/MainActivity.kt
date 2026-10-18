@@ -73,28 +73,52 @@ fun App(model:AppModel){
     var edit by remember{mutableStateOf<DayEntry?>(null)}
     fun goBack(){if(model.screen==Screen.REVIEW)discard=true else model.screen=Screen.DASHBOARD}
     BackHandler(enabled=model.screen!=Screen.DASHBOARD || model.busy){if(!model.busy)goBack()}
-    Scaffold(containerColor=MaterialTheme.colorScheme.background,topBar={
-        TopAppBar(title={Text("Eine Woche im Blick",fontFamily=FontFamily.Serif)},
-            navigationIcon={if(model.screen!=Screen.DASHBOARD)TextButton(onClick={goBack()},enabled=!model.busy){Text("Zurück")}},
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                scrolledContainerColor = MaterialTheme.colorScheme.background
-            ),
-            actions={if(model.screen==Screen.DASHBOARD){
-                TextButton(onClick={model.screen=Screen.HISTORY}){Text("Scans")}
-                TextButton(onClick={model.screen=Screen.SETTINGS}){Text("Menü")}
-            }})
-    },floatingActionButton={if(model.screen==Screen.DASHBOARD)FloatingActionButton(onClick={model.screen=Screen.CAMERA},containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary,
-        modifier=Modifier.semantics{contentDescription="Wochenblatt scannen"}){
-        Text("+",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(horizontal=8.dp))
-    }}){padding ->
-        Box(Modifier.fillMaxSize().padding(padding)){
-            when(model.screen){
-                Screen.DASHBOARD -> Dashboard(days,onEdit={edit=it})
-                Screen.CAMERA -> CameraScreen(model)
-                Screen.REVIEW -> Review(model,onPhoto={photo=it})
-                Screen.SETTINGS -> Settings(model)
-                Screen.HISTORY -> History(scans,model,onPhoto={photo=it})
+    if (model.screen == Screen.CAMERA) {
+        CameraScreen(
+            model = model,
+            onBack = { goBack() }
+        )
+    } else {
+        Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
+            TopAppBar(
+                title = { Text("Eine Woche im Blick", fontFamily = FontFamily.Serif) },
+                navigationIcon = {
+                    if (model.screen != Screen.DASHBOARD) TextButton(
+                        onClick = { goBack() },
+                        enabled = !model.busy
+                    ) { Text("Zurück") }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background
+                ),
+                actions = {
+                    if (model.screen == Screen.DASHBOARD) {
+                        TextButton(onClick = { model.screen = Screen.HISTORY }) { Text("Scans") }
+                        TextButton(onClick = { model.screen = Screen.SETTINGS }) { Text("Menü") }
+                    }
+                })
+        }, floatingActionButton = {
+            if (model.screen == Screen.DASHBOARD) FloatingActionButton(
+                onClick = { model.screen = Screen.CAMERA },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.semantics { contentDescription = "Wochenblatt scannen" }) {
+                Text(
+                    "+",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+        }) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                when (model.screen) {
+                    Screen.DASHBOARD -> Dashboard(days, onEdit = { edit = it })
+                    Screen.CAMERA -> Unit
+                    Screen.REVIEW -> Review(model, onPhoto = { photo = it })
+                    Screen.SETTINGS -> Settings(model)
+                    Screen.HISTORY -> History(scans, model, onPhoto = { photo = it })
+                }
             }
         }
     }
