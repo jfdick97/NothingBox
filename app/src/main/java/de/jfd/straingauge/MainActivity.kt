@@ -65,6 +65,11 @@ class MainActivity:ComponentActivity(){
             }
         }
     }
+    override fun onResume() {
+        super.onResume()
+        Reminders.scheduleNext(this)
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -727,6 +732,10 @@ fun Settings(model:AppModel){
         ) {
             Text("Alle Daten löschen")
         }
+
+        HorizontalDivider()
+
+        ReminderSettings()
 
         HorizontalDivider()
         Text("Ausprobieren",style=MaterialTheme.typography.titleLarge)

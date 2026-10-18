@@ -57,13 +57,16 @@ interface Store {
     @Query("DELETE FROM days WHERE date = :date") suspend fun deleteDay(date: String)
     @Query("DELETE FROM scans WHERE id = :id") suspend fun deleteScan(id: String)
     @Query("UPDATE days SET scanId = NULL WHERE scanId = :id") suspend fun unlinkScan(id: String)
-    @Query(
-        "DELETE FROM days WHERE date >= :start AND date <= :end"
-    )
+    @Query("DELETE FROM days WHERE date >= :start AND date <= :end")
     suspend fun deleteDaysInRange(
         start: String,
         end: String
     ): Int
+    @Query("SELECT EXISTS(" + "SELECT 1 FROM days " + "WHERE date >= :start AND date <= :end" + ")")
+    suspend fun hasEntriesInRange(
+        start: String,
+        end: String
+    ): Boolean
 }
 @Database(entities = [DayEntry::class, ScanEntry::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
