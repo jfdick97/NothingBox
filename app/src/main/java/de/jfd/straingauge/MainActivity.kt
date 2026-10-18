@@ -734,7 +734,7 @@ fun Settings(model:AppModel){
         Text("Öffnet ein künstlich ausgefülltes Blatt in der Scan-Prüfung. Erst Speichern übernimmt die Testwerte.",style=MaterialTheme.typography.bodySmall)
         Text("Vorlage: OnePager · linke Seite",style=MaterialTheme.typography.titleMedium)
         Text("Die neue OnePager-Vorlage wird anhand gedruckter Merkmale und aller vier L-Marken ausgerichtet. Die Punkte in den gestrichelten Kästchen liefern kontinuierliche Werte. Die frühere BC-02-Vorlage wird weiterhin erkannt.")
-        Text("Version 1.0.0 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
+        Text("Version 1.1.0 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
     }
     if (model.showDeleteOptions) {
         AlertDialog(
