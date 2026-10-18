@@ -43,22 +43,22 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
+import androidx.activity.enableEdgeToEdge
 
-private val Ink=Color(0xFF263F4A)
-private val Paper=Color(0xFFFAF8F3)
-private val Teal=Color(0xFF3D7772)
-private val metricColors=listOf(Color(0xFFB8794D),Color(0xFF9C6574),Color(0xFF427F76),Color(0xFF547C9D))
 private val german=DateTimeFormatter.ofPattern("dd.MM.yyyy",Locale.GERMANY)
 private fun displayDate(date:String)=runCatching{LocalDate.parse(date).format(german)}.getOrDefault(date)
 private fun number(v:Double?)=v?.let{String.format(Locale.GERMANY,"%.1f",it)} ?: "–"
 private fun factorsText(mask:Int,labels:List<String> = factorNames)=labels.filterIndexed{i,_->mask and (1 shl i)!=0}.joinToString(", ").ifEmpty{"keine"}
 class MainActivity:ComponentActivity(){
     private val model:AppModel by viewModels()
-    override fun onCreate(savedInstanceState:Bundle?){
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent{
-            MaterialTheme(colorScheme=lightColorScheme(primary=Teal,background=Paper,surface=Paper,onSurface=Ink,onBackground=Ink),
-                typography=Typography()) { App(model) }
+        enableEdgeToEdge()
+
+        setContent {
+            StrainGaugeTheme {
+                App(model)
+            }
         }
     }
 }
@@ -73,14 +73,18 @@ fun App(model:AppModel){
     var edit by remember{mutableStateOf<DayEntry?>(null)}
     fun goBack(){if(model.screen==Screen.REVIEW)discard=true else model.screen=Screen.DASHBOARD}
     BackHandler(enabled=model.screen!=Screen.DASHBOARD || model.busy){if(!model.busy)goBack()}
-    Scaffold(containerColor=Paper,topBar={
+    Scaffold(containerColor=MaterialTheme.colorScheme.background,topBar={
         TopAppBar(title={Text("Eine Woche im Blick",fontFamily=FontFamily.Serif)},
             navigationIcon={if(model.screen!=Screen.DASHBOARD)TextButton(onClick={goBack()},enabled=!model.busy){Text("Zurück")}},
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background
+            ),
             actions={if(model.screen==Screen.DASHBOARD){
                 TextButton(onClick={model.screen=Screen.HISTORY}){Text("Scans")}
                 TextButton(onClick={model.screen=Screen.SETTINGS}){Text("Menü")}
             }})
-    },floatingActionButton={if(model.screen==Screen.DASHBOARD)FloatingActionButton(onClick={model.screen=Screen.CAMERA},containerColor=Teal,contentColor=Color.White,
+    },floatingActionButton={if(model.screen==Screen.DASHBOARD)FloatingActionButton(onClick={model.screen=Screen.CAMERA},containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary,
         modifier=Modifier.semantics{contentDescription="Wochenblatt scannen"}){
         Text("+",style=MaterialTheme.typography.headlineLarge,modifier=Modifier.padding(horizontal=8.dp))
     }}){padding ->
@@ -124,6 +128,7 @@ fun App(model:AppModel){
 
 @Composable
 fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
+    val metricColors = metricColorsForTheme()
     var period by rememberSaveable{mutableIntStateOf(28)}
     var weekOffset by rememberSaveable{mutableIntStateOf(0)}
     val today=LocalDate.now()
@@ -133,20 +138,26 @@ fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Spacer(Modifier.height(4.dp))
         Text("Dein Verlauf",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
-        Text("Was fordert dich? Was trägt dich?",color=Ink.copy(alpha=.65f))
+        Text("Was fordert dich? Was trägt dich?",color=MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
             listOf(28 to "4 Wochen",90 to "3 Monate",0 to "Alles").forEach{(n,label)->FilterChip(selected=period==n,onClick={period=n},label={Text(label)})}
         }
         Text("${start.format(german)} – ${end.format(german)} · ${days.size} erfasste Tage",style=MaterialTheme.typography.labelMedium)
         if(all.isEmpty()){
-            Card(colors=CardDefaults.cardColors(containerColor=Color(0xFFE8EFEB))){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+            Card(colors=CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
                 Text("Deine erste Woche",style=MaterialTheme.typography.titleMedium)
                 Text("Tippe unten rechts auf +, um dein Wochenblatt zu fotografieren. Im Menü findest du ein Testblatt zum Ausprobieren.")
             }}
         }
         metricNames.forEachIndexed{m,name ->
             val values=days.mapNotNull{it.values()[m]}
-            Card(colors=CardDefaults.cardColors(containerColor=Color.White),shape=RoundedCornerShape(18.dp)){
+            Card(colors=CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),shape=RoundedCornerShape(18.dp)){
                 Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
                         Text(name,style=MaterialTheme.typography.titleMedium,color=metricColors[m])
@@ -160,7 +171,10 @@ fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
         }
         val selectedWeek=monday().plusWeeks(weekOffset.toLong())
         val weekDays=all.filter{LocalDate.parse(it.date)>=selectedWeek && LocalDate.parse(it.date)<=selectedWeek.plusDays(6)}
-        Card(colors=CardDefaults.cardColors(containerColor=Color(0xFFE8EFEB))){
+        Card(colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
                 Text("Wochenmittelwerte",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.titleLarge)
                 Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
@@ -202,7 +216,7 @@ fun Dashboard(all:List<DayEntry>,onEdit:(DayEntry)->Unit){
 
 @Composable
 fun Plot(days:List<DayEntry>,metric:Int,start:LocalDate,end:LocalDate,color:Color){
-    val axis=Ink.copy(alpha=.16f)
+    val axis = MaterialTheme.colorScheme.outlineVariant
     Row(Modifier.fillMaxWidth().height(140.dp)){
         Column(Modifier.width(24.dp).fillMaxHeight(),verticalArrangement=Arrangement.SpaceBetween){listOf("10","5","0").forEach{Text(it,style=MaterialTheme.typography.labelSmall)}}
         Canvas(Modifier.weight(1f).fillMaxHeight().padding(vertical=6.dp)){
@@ -244,7 +258,7 @@ fun Review(model:AppModel,onPhoto:(File)->Unit){
         Text("Foto antippen zum Vergrößern und Zoomen.",style=MaterialTheme.typography.labelSmall)
         if(scan.warnings.isNotEmpty()){
             OutlinedButton(onClick={showWarnings=!showWarnings}){Text("${scan.warnings.size} Hinweise ${if(showWarnings)"verbergen" else "anzeigen"}")}
-            if(showWarnings)scan.warnings.forEach{Text(it,color=Color(0xFF9B591E),style=MaterialTheme.typography.bodySmall)}
+            if(showWarnings)scan.warnings.forEach{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
         }
         OutlinedTextField(value=model.week,onValueChange=model::changeWeek,label={Text("Montag der Woche (JJJJ-MM-TT)")},singleLine=true,modifier=Modifier.fillMaxWidth())
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
@@ -279,7 +293,7 @@ fun FactorEditor(mask:Int,labels:List<String> = factorNames,onToggle:(Int)->Unit
     labels.forEachIndexed{f,label -> Row(verticalAlignment=Alignment.CenterVertically,modifier=Modifier.fillMaxWidth().clickable{onToggle(f)}){
         Checkbox(checked=mask and (1 shl f)!=0,onCheckedChange={onToggle(f)});Text(label,style=MaterialTheme.typography.bodyMedium)
     }}
-    if(Integer.bitCount(mask)>3)Text("Mehr als drei Faktoren ausgewählt – bitte prüfen.",color=Color(0xFF9B591E))
+    if(Integer.bitCount(mask)>3)Text("Mehr als drei Faktoren ausgewählt – bitte prüfen.",color=MaterialTheme.colorScheme.error)
 }
 
 @Composable
@@ -379,7 +393,7 @@ fun PhotoDialog(file:File,onClose:()->Unit){
     var zoom by remember{mutableFloatStateOf(1f)}
     var offset by remember{mutableStateOf(Offset.Zero)}
     Dialog(onDismissRequest=onClose,properties=DialogProperties(usePlatformDefaultWidth=false)){
-        Column(Modifier.fillMaxSize().background(Paper).padding(16.dp)){
+        Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp)){
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
                 TextButton(onClick={zoom=1f;offset=Offset.Zero}){Text("Zurücksetzen")}
                 TextButton(onClick=onClose){Text("Schließen")}

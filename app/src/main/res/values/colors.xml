@@ -1,1 +1,4 @@
-<resources><color name="launcher_background">#3D7772</color></resources>
+<resources>
+    <color name="launcher_background">#3D7772</color>
+    <color name="app_background">#FAF8F3</color>
+</resources>
