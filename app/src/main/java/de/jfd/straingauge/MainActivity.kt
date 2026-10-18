@@ -37,6 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.filled.Menu
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.io.File
 import java.time.LocalDate
@@ -94,8 +97,23 @@ fun App(model:AppModel){
                 ),
                 actions = {
                     if (model.screen == Screen.DASHBOARD) {
-                        TextButton(onClick = { model.screen = Screen.HISTORY }) { Text("Scans") }
-                        TextButton(onClick = { model.screen = Screen.SETTINGS }) { Text("Menü") }
+                        IconButton(
+                            onClick = { model.screen = Screen.HISTORY }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.PhotoLibrary,
+                                contentDescription = "Gespeicherte Scans öffnen"
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { model.screen = Screen.SETTINGS }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = "Menü öffnen"
+                            )
+                        }
                     }
                 })
         }, floatingActionButton = {
