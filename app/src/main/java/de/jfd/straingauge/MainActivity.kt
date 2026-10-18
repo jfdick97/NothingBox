@@ -253,9 +253,10 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
         Text("Dein Verlauf",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
         Text("Was fordert dich? Was trägt dich?",color=MaterialTheme.colorScheme.onSurfaceVariant)
         TrendCard(trendAssessment)
-        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-            listOf(28 to "4 Wochen",90 to "3 Monate",0 to "Alles").forEach{(n,label)->FilterChip(selected=period==n,onClick={period=n},label={Text(label)})}
-        }
+        PeriodSelector(
+            selectedPeriod = period,
+            onPeriodSelected = { period = it }
+        )
         Text("${start.format(german)} – ${end.format(german)} · ${days.size} erfasste Tage",style=MaterialTheme.typography.labelMedium)
         if(all.isEmpty()){
             Card(colors=CardDefaults.cardColors(
@@ -344,19 +345,51 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                     }
                 }
                 Text(
-                    text = "Varianz in Punkte²: Größere Werte bedeuten " +
+                    text = "Varianz in Punkte: Größere Werte bedeuten " +
                             "stärkere Schwankungen innerhalb der Woche. " +
                             "Berechnet aus den vorhandenen Tageswerten.",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
-        val counts=days.flatMap{it.selectedFactors()}.groupingBy{it}.eachCount()
-        if(counts.isNotEmpty()){
-            Text("Belastungsfaktoren",style=MaterialTheme.typography.titleLarge,fontFamily=Garamond)
-            counts.entries.sortedByDescending{it.value}.forEach{(label,count) ->
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text(label,modifier=Modifier.weight(1f));Text("$count Tage")}
-            }
+        val counts = days
+            .flatMap { it.selectedFactors() }
+            .groupingBy { it }
+            .eachCount()
+
+        Text(
+            text = "Belastungsfaktoren",
+            fontFamily = Garamond,
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        PeriodSelector(
+            selectedPeriod = period,
+            onPeriodSelected = { period = it }
+        )
+
+        if (counts.isEmpty()) {
+            Text(
+                text = "Im ausgewählten Zeitraum sind keine " +
+                        "Belastungsfaktoren erfasst.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        } else {
+            counts.entries
+                .sortedByDescending { it.value }
+                .forEach { (label, count) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = label,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Text("$count Tage")
+                    }
+                }
         }
         if (all.isNotEmpty()) {
             OutlinedButton(
@@ -367,6 +400,33 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             }
         }
         Spacer(Modifier.height(100.dp))
+    }
+}
+
+@Composable
+fun PeriodSelector(
+    selectedPeriod: Int,
+    onPeriodSelected: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(
+            28 to "4 Wochen",
+            90 to "3 Monate",
+            0 to "Alles"
+        ).forEach { (value, label) ->
+            FilterChip(
+                selected = selectedPeriod == value,
+                onClick = {
+                    onPeriodSelected(value)
+                },
+                label = {
+                    Text(label)
+                }
+            )
+        }
     }
 }
 
