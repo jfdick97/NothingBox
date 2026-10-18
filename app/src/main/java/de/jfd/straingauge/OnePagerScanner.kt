@@ -95,30 +95,201 @@ class SheetScanner(private val context: Context) {
                 val (shift,score)=matchShift(aligned,template,Rect(x0,y0-3,x1-x0,y1-y0+33),12,18)
                 if(score<.45){warnings+="${dayLabels[d]}, ${metricNames[m]}: Skalenfeld nicht sicher erkannt.";continue}
                 confirmedFrames++
-                val dx=shift.x.roundToInt();val dy=shift.y.roundToInt()
-                val left=x0+dx+4;val top=y0+dy+5
-                val roi=binary.submat(Rect(left,top,x1-x0-8,y1-y0-10))
-                val labels=Mat();val stats=Mat();val centers=Mat()
+                val dx = shift.x.roundToInt()
+                val dy = shift.y.roundToInt()
+
+// Tatsächliche Position des lokal ausgerichteten Skalenrahmens.
+                val frameLeft = x0 + dx
+                val frameTop = y0 + dy
+                val frameRight = x1 + dx
+                val frameBottom = y1 + dy
+
+// Der Punkt darf über den Rahmen hinausragen.
+// Dieser Abstand gilt im entzerrten Vorlagenbild.
+                val searchMargin = 22
+
+                val left = (frameLeft - searchMargin).coerceAtLeast(0)
+                val top = (frameTop - searchMargin).coerceAtLeast(0)
+
+                val right = (frameRight + searchMargin + 1)
+                    .coerceAtMost(binary.cols())
+
+                val bottom = (frameBottom + searchMargin + 1)
+                    .coerceAtMost(binary.rows())
+
+                val roi = binary.submat(
+                    Rect(
+                        left,
+                        top,
+                        right - left,
+                        bottom - top
+                    )
+                )
+
+                val cleaned = Mat()
+                val labels = Mat()
+                val stats = Mat()
+                val centers = Mat()
+
+// Dünne Linien entfernen, kompakte ausgefüllte Punkte erhalten.
+                val kernel = Imgproc.getStructuringElement(
+                    Imgproc.MORPH_ELLIPSE,
+                    Size(5.0, 5.0)
+                )
+
                 try {
-                    val count=Imgproc.connectedComponentsWithStats(roi,labels,stats,centers)
-                    val candidates=(1 until count).filter{i->
-                        val area=stats.get(i,Imgproc.CC_STAT_AREA)[0];val w=stats.get(i,Imgproc.CC_STAT_WIDTH)[0];val h=stats.get(i,Imgproc.CC_STAT_HEIGHT)[0]
-                        area>=12 && area<=roi.total()*.3 && w in 5.0..36.0 && h>=5 && w/h in .35..2.8
+                    Imgproc.morphologyEx(
+                        roi,
+                        cleaned,
+                        Imgproc.MORPH_OPEN,
+                        kernel,
+                        Point(-1.0, -1.0),
+                        1,
+                        Core.BORDER_CONSTANT,
+                        Scalar(0.0)
+                    )
+
+                    val count = Imgproc.connectedComponentsWithStats(
+                        cleaned,
+                        labels,
+                        stats,
+                        centers
+                    )
+
+                    // Der Punkt selbst darf deutlich überstehen.
+                    // Sein Mittelpunkt soll zum untersuchten Skalenfeld gehören.
+                    val centerTolerance = 3.0
+
+                    val candidates = (1 until count).filter { i ->
+                        val area = stats.get(i, Imgproc.CC_STAT_AREA)[0]
+                        val width = stats.get(i, Imgproc.CC_STAT_WIDTH)[0]
+                        val height = stats.get(i, Imgproc.CC_STAT_HEIGHT)[0]
+
+                        val centerX = centers.get(i, 0)[0] + left
+                        val centerY = centers.get(i, 1)[0] + top
+
+                        val plausibleShape =
+                            area >= 12.0 &&
+                                    area <= cleaned.total() * 0.3 &&
+                                    width in 5.0..36.0 &&
+                                    height in 5.0..36.0 &&
+                                    width / height in 0.35..2.8
+
+                        val belongsToField =
+                            centerX >= frameLeft - centerTolerance &&
+                                    centerX <= frameRight + centerTolerance &&
+                                    centerY >= frameTop - centerTolerance &&
+                                    centerY <= frameBottom + centerTolerance
+
+                        plausibleShape && belongsToField
                     }
-                    if(candidates.size==1){
-                        val i=candidates.single();val x=centers.get(i,0)[0]+left;val y=centers.get(i,1)[0]+top
-                        val value=(10*(x-(x0+dx))/(x1-x0)).coerceIn(0.0,10.0)
-                        values[m][d]=round(value*100)/100
-                        Imgproc.circle(annotated,Point(x,y),12,Scalar(25.0,140.0,110.0),2)
-                        Imgproc.putText(annotated,"%.1f".format(java.util.Locale.US,value),Point(x0+dx+5.0,y0+dy-5.0),Imgproc.FONT_HERSHEY_SIMPLEX,.45,Scalar(25.0,110.0,90.0),1)
-                        if(stats.get(i,Imgproc.CC_STAT_LEFT)[0]<=1 || stats.get(i,Imgproc.CC_STAT_TOP)[0]<=0 ||
-                            stats.get(i,Imgproc.CC_STAT_TOP)[0]+stats.get(i,Imgproc.CC_STAT_HEIGHT)[0]>=roi.rows()-1)
-                            warnings+="${dayLabels[d]}, ${metricNames[m]}: Punkt nahe am Rahmen – Wert prüfen."
-                    }else if(candidates.size>1){
-                        warnings+="${dayLabels[d]}, ${metricNames[m]}: mehrere Punkte – bitte auswählen."
-                        candidates.forEach{i->Imgproc.circle(annotated,Point(centers.get(i,0)[0]+left,centers.get(i,1)[0]+top),12,Scalar(220.0,120.0,20.0),2)}
-                    }else if(Core.countNonZero(roi)>roi.total()*.015){warnings+="${dayLabels[d]}, ${metricNames[m]}: schwache/unklare Markierung prüfen."}
-                } finally {roi.release();labels.release();stats.release();centers.release()}
+
+                    if (candidates.size == 1) {
+                        val i = candidates.single()
+
+                        val x = centers.get(i, 0)[0] + left
+                        val y = centers.get(i, 1)[0] + top
+
+                        val componentLeft =
+                            stats.get(i, Imgproc.CC_STAT_LEFT)[0]
+
+                        val componentTop =
+                            stats.get(i, Imgproc.CC_STAT_TOP)[0]
+
+                        val componentWidth =
+                            stats.get(i, Imgproc.CC_STAT_WIDTH)[0]
+
+                        val componentHeight =
+                            stats.get(i, Imgproc.CC_STAT_HEIGHT)[0]
+
+                        // Nur ein Abschneiden am äußeren Suchbereich ist kritisch.
+                        // Eine Berührung des gedruckten Rahmens ist erlaubt.
+                        val clipped =
+                            componentLeft <= 0.0 ||
+                                    componentTop <= 0.0 ||
+                                    componentLeft + componentWidth >= roi.cols() ||
+                                    componentTop + componentHeight >= roi.rows()
+
+                        if (clipped) {
+                            warnings +=
+                                "${dayLabels[d]}, ${metricNames[m]}: " +
+                                        "Markierung am Suchrand abgeschnitten – bitte prüfen."
+                        } else {
+                            val value = (
+                                    10.0 * (x - frameLeft) /
+                                            (frameRight - frameLeft)
+                                    ).coerceIn(0.0, 10.0)
+
+                            values[m][d] = round(value * 100.0) / 100.0
+
+                            Imgproc.circle(
+                                annotated,
+                                Point(x, y),
+                                12,
+                                Scalar(25.0, 140.0, 110.0),
+                                2
+                            )
+
+                            Imgproc.putText(
+                                annotated,
+                                "%.1f".format(java.util.Locale.US, value),
+                                Point(
+                                    frameLeft + 5.0,
+                                    frameTop - 5.0
+                                ),
+                                Imgproc.FONT_HERSHEY_SIMPLEX,
+                                0.45,
+                                Scalar(25.0, 110.0, 90.0),
+                                1
+                            )
+                        }
+                    } else if (candidates.size > 1) {
+                        warnings +=
+                            "${dayLabels[d]}, ${metricNames[m]}: " +
+                                    "mehrere Punkte – bitte auswählen."
+
+                        candidates.forEach { i ->
+                            Imgproc.circle(
+                                annotated,
+                                Point(
+                                    centers.get(i, 0)[0] + left,
+                                    centers.get(i, 1)[0] + top
+                                ),
+                                12,
+                                Scalar(220.0, 120.0, 20.0),
+                                2
+                            )
+                        }
+                    } else {
+                        // Bei fehlender Erkennung weiterhin prüfen, ob im
+                        // ursprünglichen Innenbereich eine Markierung vorhanden ist.
+                        val inner = binary.submat(
+                            Rect(
+                                frameLeft + 4,
+                                frameTop + 5,
+                                frameRight - frameLeft - 8,
+                                frameBottom - frameTop - 10
+                            )
+                        )
+
+                        try {
+                            if (Core.countNonZero(inner) > inner.total() * 0.015) {
+                                warnings +=
+                                    "${dayLabels[d]}, ${metricNames[m]}: " +
+                                            "schwache/unklare Markierung prüfen."
+                            }
+                        } finally {
+                            inner.release()
+                        }
+                    }
+                } finally {
+                    roi.release()
+                    cleaned.release()
+                    labels.release()
+                    stats.release()
+                    centers.release()
+                    kernel.release()
+                }
             }
             require(confirmedFrames>=22){"Das Layout passt nicht zur linken OnePager-Seite oder ist zu unscharf."}
             val factors=(0..6).map{d->
