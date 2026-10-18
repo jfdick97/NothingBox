@@ -28,6 +28,8 @@ class AppModel(app: Application): AndroidViewModel(app) {
     var screen by mutableStateOf(Screen.DASHBOARD)
     var busy by mutableStateOf(false)
     var message by mutableStateOf<String?>(null)
+    var showDeleteOptions by mutableStateOf(false)
+    var showDeleteConfirmation by mutableStateOf(false)
     var draft by mutableStateOf<ScanResult?>(null)
     var editedValues by mutableStateOf(List(7){List<Double?>(4){null}})
     var editedFactors by mutableStateOf(List(7){0})
@@ -137,6 +139,72 @@ class AppModel(app: Application): AndroidViewModel(app) {
     fun export(uri:Uri,zip:Boolean)=runJob {
         withContext(Dispatchers.IO){if(zip)backup.exportZip(uri) else backup.exportCsv(uri)}
         message=if(zip)"Vollständige Sicherung exportiert." else "CSV exportiert."
+    }
+    fun exportBeforeDelete(uri: Uri) = runJob {
+        message = null
+        showDeleteConfirmation = false
+
+        withContext(Dispatchers.IO) {
+            backup.exportZip(uri)
+        }
+
+        // Diese Stelle wird nur nach erfolgreichem Export erreicht.
+        showDeleteConfirmation = true
+    }
+    fun deleteAllData() = runJob {
+        showDeleteOptions = false
+        showDeleteConfirmation = false
+        message = null
+
+        val app = getApplication<Application>()
+
+        val filesDeleted = withContext(Dispatchers.IO) {
+            // Messwerte und Scan-Einträge aus der Datenbank entfernen.
+            db.clearAllTables()
+
+            // Inhalte löschen, die Verzeichnisse selbst behalten.
+            fun emptyDirectory(directory: File): Boolean {
+                if (!directory.exists()) return true
+
+                val entries = directory.listFiles() ?: return false
+
+                // Erst alle Löschversuche ausführen, dann das Ergebnis prüfen.
+                return entries
+                    .map { it.deleteRecursively() }
+                    .all { it }
+            }
+
+            val photosDeleted = emptyDirectory(
+                File(app.filesDir, "scans")
+            )
+
+            val cacheDeleted = emptyDirectory(app.cacheDir)
+
+            photosDeleted && cacheDeleted
+        }
+
+        // Auch vorübergehend im Arbeitsspeicher gehaltene Daten zurücksetzen.
+        clearDraft()
+        cancelImport()
+
+        saveConflicts = null
+        importConflicts = emptyList()
+        importedValues = emptyList()
+
+        editedValues = List(7) { List<Double?>(4) { null } }
+        editedFactors = List(7) { 0 }
+        editedCustom1 = ""
+        editedCustom2 = ""
+        week = monday().toString()
+
+        screen = Screen.DASHBOARD
+
+        message = if (filesDeleted) {
+            "Alle Messwerte und gespeicherten Scans wurden gelöscht."
+        } else {
+            "Die Datenbank wurde geleert. Einige Foto- oder " +
+                    "Cache-Dateien konnten jedoch nicht gelöscht werden."
+        }
     }
     fun inspectImport(uri:Uri)=runJob {
         val a=withContext(Dispatchers.IO){backup.readZip(uri)}

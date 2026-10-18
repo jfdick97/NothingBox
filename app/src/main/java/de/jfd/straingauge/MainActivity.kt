@@ -343,6 +343,16 @@ fun Settings(model:AppModel){
     val exportZip=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")){it?.let{uri->model.export(uri,true)}}
     val exportCsv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")){it?.let{uri->model.export(uri,false)}}
     val importZip=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){it?.let(model::inspectImport)}
+    val exportBeforeDelete = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri != null) {
+            model.exportBeforeDelete(uri)
+        } else {
+            // Dateiauswahl abgebrochen: zurück zur ersten Nachfrage.
+            model.showDeleteOptions = true
+        }
+    }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Text("Deine Daten",fontFamily=FontFamily.Serif,style=MaterialTheme.typography.headlineLarge)
         Text("Verarbeitung und Speicherung erfolgen auf diesem Smartphone. Die App benötigt keinen Internetzugang und erstellt keine automatische Cloud-Sicherung.")
@@ -353,12 +363,135 @@ fun Settings(model:AppModel){
         OutlinedButton(onClick={exportCsv.launch("Wochenblick-${LocalDate.now()}.csv")},modifier=Modifier.fillMaxWidth()){Text("Messwerte als CSV exportieren")}
         Text("Für Python und Excel: UTF-8, Semikolon, Dezimalpunkt. CSV ist ein Analyseexport; die Wiederherstellung erfolgt über ZIP.",style=MaterialTheme.typography.bodySmall)
         HorizontalDivider()
+
+        Text(
+            text = "Daten löschen",
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        Text(
+            text = "Entfernt alle Messwerte und gespeicherten Scan-Fotos " +
+                    "aus dieser App.",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        OutlinedButton(
+            onClick = {
+                model.showDeleteOptions = true
+            },
+            enabled = !model.busy,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Text("Alle Daten löschen")
+        }
+
+        HorizontalDivider()
         Text("Ausprobieren",style=MaterialTheme.typography.titleLarge)
         OutlinedButton(onClick=model::testScan,modifier=Modifier.fillMaxWidth()){Text("Künstliches Testblatt auswerten")}
         Text("Öffnet ein künstlich ausgefülltes Blatt in der Scan-Prüfung. Erst Speichern übernimmt die Testwerte.",style=MaterialTheme.typography.bodySmall)
         Text("Vorlage: OnePager · linke Seite",style=MaterialTheme.typography.titleMedium)
         Text("Die neue OnePager-Vorlage wird anhand gedruckter Merkmale und aller vier L-Marken ausgerichtet. Die Punkte in den gestrichelten Kästchen liefern kontinuierliche Werte. Die frühere BC-02-Vorlage wird weiterhin erkannt.")
         Text("Version 0.2.0 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
+    }
+    if (model.showDeleteOptions) {
+        AlertDialog(
+            onDismissRequest = {
+                model.showDeleteOptions = false
+            },
+            title = {
+                Text("Vorher eine Sicherung erstellen?")
+            },
+            text = {
+                Text(
+                    "Möchtest du deine Messwerte und Scan-Fotos " +
+                            "vor dem Löschen als ZIP-Datei exportieren?"
+                )
+            },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            model.showDeleteOptions = false
+
+                            exportBeforeDelete.launch(
+                                "Wochenblick-Sicherung-${LocalDate.now()}.zip"
+                            )
+                        },
+                        enabled = !model.busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Sicherung exportieren")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            model.showDeleteOptions = false
+                            model.showDeleteConfirmation = true
+                        },
+                        enabled = !model.busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Ohne Export fortfahren")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            model.showDeleteOptions = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Abbrechen")
+                    }
+                }
+            }
+        )
+    }
+
+    if (model.showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = {
+                model.showDeleteConfirmation = false
+            },
+            title = {
+                Text("Alle Daten wirklich löschen?")
+            },
+            text = {
+                Text(
+                    "Alle Messwerte und gespeicherten Scan-Fotos " +
+                            "werden aus dieser App gelöscht. " +
+                            "Das kann nur durch den Import einer vorhandenen " +
+                            "ZIP-Sicherung rückgängig gemacht werden."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        model.deleteAllData()
+                    },
+                    enabled = !model.busy,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Alles löschen")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        model.showDeleteConfirmation = false
+                    }
+                ) {
+                    Text("Abbrechen")
+                }
+            }
+        )
     }
 }
 
