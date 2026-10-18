@@ -62,6 +62,7 @@ class MainActivity:ComponentActivity(){
         setContent {
             StrainGaugeTheme {
                 App(model)
+                ReminderStartupPermissions()
             }
         }
     }

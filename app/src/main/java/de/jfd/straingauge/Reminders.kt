@@ -46,7 +46,7 @@ object Reminders {
         )
 
     fun isEnabled(context: Context): Boolean =
-        preferences(context).getBoolean(KEY_ENABLED, false)
+        preferences(context).getBoolean(KEY_ENABLED, true)
 
     fun isPausedThisWeek(context: Context): Boolean {
         val currentWeek = mondayOf(LocalDate.now()).toString()
