@@ -1,0 +1,15 @@
+EINE WOCHE IM BLICK – VERSION 0.2
+
+Bei bereits installierter Version zuerst UPDATE-0.2.md lesen.
+
+1. Archiv entpacken, StrainGauge in Android Studio öffnen.
+2. Gradle synchronisieren, JVM 17 oder 21 / SDK 35.
+3. Smartphone mit USB-Debugging verbinden, Run -> app.
+4. Menü -> Künstliches Testblatt auswerten.
+5. Eigenes Foto: + -> Vorhandenes Foto öffnen.
+
+OnePager.pdf: neue Vorlage, linke Seite mit L-Marken.
+ERKENNUNG_BEISPIEL.jpg: Auswertung des bereitgestellten Fotos.
+README.md: ausführliche Anleitung.
+
+Die App arbeitet offline. Der erste Build am Rechner braucht Internet.
