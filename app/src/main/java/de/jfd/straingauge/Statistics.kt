@@ -4,15 +4,11 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
-// Regeln für die Trenderkennung:
 private const val MIN_DAYS_PER_WEEK = 4
 private const val MIN_WEEKLY_CHANGE = 0.25
 private const val MIN_TOTAL_CHANGE = 1.0
+private const val EPSILON = 0.000000001
 
-/**
- * Beschreibende Varianz der vorhandenen Werte.
- * Bei weniger als zwei Werten zeigen wir keine Varianz an.
- */
 fun recordedVariance(values: List<Double>): Double? {
     if (values.size < 2) return null
 
@@ -24,7 +20,7 @@ fun recordedVariance(values: List<Double>): Double? {
     } / values.size
 }
 
-data class TrendWarning(
+data class MetricTrend(
     val metricIndex: Int,
     val weeklyMeans: List<Double>
 )
@@ -33,8 +29,33 @@ data class TrendAssessment(
     val start: LocalDate,
     val end: LocalDate,
     val assessedMetrics: Int,
-    val warnings: List<TrendWarning>
+    val warnings: List<MetricTrend>,
+    val improvements: List<MetricTrend>
 )
+
+/**
+ * Prüft einen durchgängigen Trend in der angegebenen Richtung.
+ *
+ * direction = 1.0: steigende Werte
+ * direction = -1.0: fallende Werte
+ */
+private fun followsDirection(
+    means: List<Double>,
+    direction: Double
+): Boolean {
+    if (means.size < 3) return false
+
+    val weeklyChanges = means.zipWithNext { before, after ->
+        direction * (after - before)
+    }
+
+    val totalChange =
+        direction * (means.last() - means.first())
+
+    return weeklyChanges.all {
+        it >= MIN_WEEKLY_CHANGE - EPSILON
+    } && totalChange >= MIN_TOTAL_CHANGE - EPSILON
+}
 
 fun assessTrends(
     days: List<DayEntry>,
@@ -44,7 +65,6 @@ fun assessTrends(
         TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
     )
 
-    // Von der ältesten zur jüngsten abgeschlossenen Woche.
     val weekStarts = listOf(3L, 2L, 1L).map {
         currentMonday.minusWeeks(it)
     }
@@ -53,7 +73,9 @@ fun assessTrends(
         LocalDate.parse(it.date)
     }
 
-    val warnings = mutableListOf<TrendWarning>()
+    val warnings = mutableListOf<MetricTrend>()
+    val improvements = mutableListOf<MetricTrend>()
+
     var assessedMetrics = 0
 
     metricNames.indices.forEach { metric ->
@@ -71,7 +93,6 @@ fun assessTrends(
             }
         }
 
-        // Keine fehlende Woche überspringen.
         if (availableMeans.any { it == null }) {
             return@forEach
         }
@@ -79,23 +100,23 @@ fun assessTrends(
         val means = availableMeans.filterNotNull()
         assessedMetrics++
 
-        // Anforderungen und Anspannung: steigend ungünstig.
-        // Energie und Handlungsspielraum: fallend ungünstig.
-        val direction = if (metric < 2) 1.0 else -1.0
+        // Anforderungen und Anspannung:
+        // steigende Werte sind ungünstig.
+        //
+        // Energie und Handlungsspielraum:
+        // fallende Werte sind ungünstig.
+        val unfavorableDirection =
+            if (metric < 2) 1.0 else -1.0
 
-        val weeklyChanges = means.zipWithNext { before, after ->
-            direction * (after - before)
-        }
-
-        val totalChange =
-            direction * (means.last() - means.first())
-
-        val unfavorableTrend =
-            weeklyChanges.all { it >= MIN_WEEKLY_CHANGE } &&
-                    totalChange >= MIN_TOTAL_CHANGE
-
-        if (unfavorableTrend) {
-            warnings += TrendWarning(
+        if (followsDirection(means, unfavorableDirection)) {
+            warnings += MetricTrend(
+                metricIndex = metric,
+                weeklyMeans = means
+            )
+        } else if (
+            followsDirection(means, -unfavorableDirection)
+        ) {
+            improvements += MetricTrend(
                 metricIndex = metric,
                 weeklyMeans = means
             )
@@ -106,6 +127,7 @@ fun assessTrends(
         start = weekStarts.first(),
         end = currentMonday.minusDays(1),
         assessedMetrics = assessedMetrics,
-        warnings = warnings
+        warnings = warnings,
+        improvements = improvements
     )
 }

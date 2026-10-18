@@ -307,9 +307,11 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                         .takeIf { it.isNotEmpty() }
                         ?.average()
 
-                    val variance = recordedVariance(values)
+                    val standardDeviation = recordedVariance(values)?.let {
+                        kotlin.math.sqrt(it)
+                    }
 
-                    val varianceText = variance?.let {
+                    val standardDeviationText = standardDeviation?.let {
                         String.format(Locale.GERMANY, "%.2f", it)
                     } ?: "–"
 
@@ -338,15 +340,15 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                             )
 
                             Text(
-                                text = "Varianz $varianceText",
+                                text = "Standardabw. $standardDeviationText",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
                 }
                 Text(
-                    text = "Varianz in Punkte: Größere Werte bedeuten " +
-                            "stärkere Schwankungen innerhalb der Woche. " +
+                    text = "Standardabweichung in Punkten: Größere Werte " +
+                            "bedeuten stärkere Schwankungen innerhalb der Woche. " +
                             "Berechnet aus den vorhandenen Tageswerten.",
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -545,107 +547,6 @@ fun EntriesScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun TrendCard(assessment: TrendAssessment) {
-    val hasWarnings = assessment.warnings.isNotEmpty()
-
-    val containerColor = if (hasWarnings) {
-        MaterialTheme.colorScheme.errorContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-
-    val contentColor = if (hasWarnings) {
-        MaterialTheme.colorScheme.onErrorContainer
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = "Trends im Blick",
-                fontFamily = Garamond,
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Text(
-                text = "${assessment.start.format(german)} – " +
-                        assessment.end.format(german),
-                style = MaterialTheme.typography.labelMedium
-            )
-
-            if (assessment.assessedMetrics == 0) {
-                Text(
-                    "Für eine Trendbewertung fehlen noch Daten. " +
-                            "Benötigt werden je Messgröße mindestens " +
-                            "vier Tageswerte in jeder der letzten drei " +
-                            "abgeschlossenen Wochen."
-                )
-            } else {
-                if (!hasWarnings) {
-                    Text(
-                        "Bei den auswertbaren Messgrößen wurde " +
-                                "nach den festgelegten Regeln kein " +
-                                "ungünstiger Trend erkannt."
-                    )
-                }
-
-                assessment.warnings.forEach { warning ->
-                    val title = when (warning.metricIndex) {
-                        0 -> "Steigende Anforderungen"
-                        1 -> "Steigende Anspannung"
-                        2 -> "Sinkende Energie"
-                        else -> "Sinkender Handlungsspielraum"
-                    }
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Text(
-                            text = "Wochenmittel: " +
-                                    warning.weeklyMeans.joinToString(" → ") {
-                                        number(it)
-                                    }
-                        )
-                    }
-                }
-
-                if (assessment.assessedMetrics < metricNames.size) {
-                    Text(
-                        text = "${assessment.assessedMetrics} von " +
-                                "${metricNames.size} Messgrößen auswertbar. " +
-                                "Für die übrigen fehlen ausreichend Tageswerte.",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            Text(
-                text = "Trendregel: Beide Wochenwechsel mindestens " +
-                        "0,25 Punkte in ungünstiger Richtung, " +
-                        "insgesamt mindestens 1 Punkt.",
-                style = MaterialTheme.typography.bodySmall
-            )
         }
     }
 }
