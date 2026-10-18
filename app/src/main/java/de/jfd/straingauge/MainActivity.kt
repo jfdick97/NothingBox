@@ -39,6 +39,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.io.File
 import java.time.LocalDate
@@ -85,10 +87,13 @@ fun App(model:AppModel){
             TopAppBar(
                 title = { Text("Eine Woche im Blick", fontFamily = FontFamily.Serif) },
                 navigationIcon = {
-                    if (model.screen != Screen.DASHBOARD) TextButton(
-                        onClick = { goBack() },
-                        enabled = !model.busy
-                    ) { Text("Zurück") }
+                    if (model.screen != Screen.DASHBOARD)
+                        AppIconButton(
+                            icon = Icons.AutoMirrored.Filled.KeyboardReturn,
+                            label = "Zurück",
+                            onClick = { goBack() },
+                            enabled = !model.busy
+                        )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
