@@ -131,3 +131,17 @@ fun assessTrends(
         improvements = improvements
     )
 }
+
+fun DayEntry.stressIndex(): Double? {
+    val demandValue = demands ?: return null
+    val tensionValue = tension ?: return null
+    val energyValue = energy ?: return null
+    val agencyValue = agency ?: return null
+
+    return (
+            demandValue +
+                    tensionValue +
+                    (10.0 - energyValue) +
+                    (10.0 - agencyValue)
+            ) / 4.0
+}

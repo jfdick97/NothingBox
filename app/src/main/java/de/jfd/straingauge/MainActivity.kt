@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -248,6 +249,23 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
     val end=maxOf(today,all.lastOrNull()?.let{LocalDate.parse(it.date)} ?: today)
     val start=if(period==0) all.firstOrNull()?.let{LocalDate.parse(it.date)} ?: end.minusDays(27) else end.minusDays(period.toLong()-1)
     val days=all.filter{LocalDate.parse(it.date)>=start && LocalDate.parse(it.date)<=end}
+    val dashboardContext = LocalContext.current
+
+    val displayPreferences = remember(dashboardContext) {
+        dashboardContext.getSharedPreferences(
+            "display_settings",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+
+    var showStressStatistics by rememberSaveable {
+        mutableStateOf(
+            displayPreferences.getBoolean(
+                "show_stress_statistics",
+                false
+            )
+        )
+    }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Spacer(Modifier.height(4.dp))
         Text("Dein Verlauf",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
@@ -283,6 +301,39 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                     Text(if(latest==null)"Noch kein Messwert" else "Zuletzt ${number(latest.values()[m])} · ${displayDate(latest.date)}",style=MaterialTheme.typography.labelSmall)
                 }
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Stress-Statistik",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Switch(
+                checked = showStressStatistics,
+                onCheckedChange = { checked ->
+                    showStressStatistics = checked
+
+                    displayPreferences.edit()
+                        .putBoolean(
+                            "show_stress_statistics",
+                            checked
+                        )
+                        .apply()
+                }
+            )
+        }
+
+        if (showStressStatistics) {
+            StressStatisticsCard(
+                days = days,
+                start = start,
+                end = end
+            )
         }
         val selectedWeek = LocalDate.parse(selectedWeekText)
         val weekDays=all.filter{LocalDate.parse(it.date)>=selectedWeek && LocalDate.parse(it.date)<=selectedWeek.plusDays(6)}
@@ -402,6 +453,104 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             }
         }
         Spacer(Modifier.height(100.dp))
+    }
+}
+
+@Composable
+fun StressStatisticsCard(
+    days: List<DayEntry>,
+    start: LocalDate,
+    end: LocalDate
+) {
+    val values = days.mapNotNull {
+        it.stressIndex()
+    }
+
+    val mean = values
+        .takeIf { it.isNotEmpty() }
+        ?.average()
+
+    val standardDeviation = recordedVariance(values)?.let {
+        kotlin.math.sqrt(it)
+    }
+
+    val deviationText = standardDeviation?.let {
+        String.format(Locale.GERMANY, "%.2f", it)
+    } ?: "–"
+
+    val dark =
+        MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+    val stressColor = if (dark) {
+        Color(0xFFC8A2E8)
+    } else {
+        Color(0xFF7952A3)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.secondaryContainer,
+            contentColor =
+                MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Stressindex",
+                fontFamily = Garamond,
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Text(
+                text = "Dein kombinierter Index aus Anforderungen, " +
+                        "Anspannung, Energie und Handlungsspielraum. " +
+                        "Höher bedeutet höhere rechnerische Belastung.",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            if (values.isEmpty()) {
+                Text(
+                    "Im ausgewählten Zeitraum gibt es noch keinen " +
+                            "Tag mit allen vier Angaben."
+                )
+            } else {
+                Text(
+                    text = "Ø ${number(mean)}" +
+                            " · Standardabw. $deviationText",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                ValuePlot(
+                    days = days,
+                    start = start,
+                    end = end,
+                    color = stressColor,
+                    valueOf = { day ->
+                        day.stressIndex()
+                    }
+                )
+
+                Text(
+                    text = "${values.size} von ${days.size} " +
+                            "erfassten Tagen mit vollständigen Angaben.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Text(
+                text = "Berechnung: " +
+                        "(Anforderungen + Anspannung + " +
+                        "(10 − Energie) + " +
+                        "(10 − Handlungsspielraum)) / 4",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
 
@@ -552,7 +701,7 @@ fun EntriesScreen(
 }
 
 @Composable
-fun Plot(days:List<DayEntry>,metric:Int,start:LocalDate,end:LocalDate,color:Color){
+fun ValuePlot(days:List<DayEntry>,start:LocalDate,end:LocalDate,color:Color,valueOf: (DayEntry) -> Double?){
     val axis = MaterialTheme.colorScheme.outlineVariant
     Row(Modifier.fillMaxWidth().height(140.dp)){
         Column(Modifier.width(24.dp).fillMaxHeight(),verticalArrangement=Arrangement.SpaceBetween){listOf("10","5","0").forEach{Text(it,style=MaterialTheme.typography.labelSmall)}}
@@ -561,7 +710,7 @@ fun Plot(days:List<DayEntry>,metric:Int,start:LocalDate,end:LocalDate,color:Colo
             listOf(0f,.5f,1f).forEach{fraction ->drawLine(axis,Offset(0f,size.height*fraction),Offset(size.width,size.height*fraction),1.dp.toPx())}
             var previous:Pair<DayEntry,Offset>?=null
             days.forEach{day ->
-                val value=day.values()[metric]
+                val value=valueOf(day)
                 if(value==null){previous=null;return@forEach}
                 val point=Offset((LocalDate.parse(day.date).toEpochDay()-start.toEpochDay())/span*size.width,(1-value.toFloat()/10)*size.height)
                 previous?.let{(before,p) ->
@@ -575,6 +724,19 @@ fun Plot(days:List<DayEntry>,metric:Int,start:LocalDate,end:LocalDate,color:Colo
         Text(start.format(DateTimeFormatter.ofPattern("dd.MM.")),style=MaterialTheme.typography.labelSmall)
         Text(end.format(DateTimeFormatter.ofPattern("dd.MM.")),style=MaterialTheme.typography.labelSmall)
     }
+}
+
+@Composable
+fun Plot(days: List<DayEntry>, metric: Int, start: LocalDate, end: LocalDate, color: Color) {
+    ValuePlot(
+        days = days,
+        start = start,
+        end = end,
+        color = color,
+        valueOf = { day ->
+            day.values()[metric]
+        }
+    )
 }
 
 @Composable
