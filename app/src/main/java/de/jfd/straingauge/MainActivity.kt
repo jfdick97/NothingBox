@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -95,7 +96,14 @@ fun App(model:AppModel){
             TopAppBar(
                 title = { Text(tr(R.string.ui_my_nothing_box_strain_gauge), fontFamily = Garamond) },
                 navigationIcon = {
-                    if (model.screen != Screen.DASHBOARD)
+                    if (model.screen == Screen.DASHBOARD) {
+                        Image(
+                            painter = painterResource(R.mipmap.ic_launcher_foreground),
+                            contentDescription = null,
+                            modifier = Modifier.size(56.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else
                         AppIconButton(
                             icon = Icons.AutoMirrored.Filled.KeyboardReturn,
                             label = tr(R.string.action_back),
