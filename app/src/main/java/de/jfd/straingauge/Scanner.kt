@@ -33,7 +33,7 @@ data class ScanResult(val original: File, val aligned: File, val overlay: File,
 class LegacySheetScanner(private val context: Context) {
     private val profile = FormProfile(context)
     fun analyze(source: File): ScanResult {
-        check(OpenCVLoader.initLocal()) { "OpenCV konnte nicht geladen werden." }
+        check(OpenCVLoader.initLocal()) { tr(R.string.scan_opencv_could_not_be_loaded) }
         val bitmap = loadOriented(source)
         val rgba = Mat(); val gray = Mat(); val ids = Mat(); val corners = mutableListOf<Mat>()
         val warped = Mat(); val binary = Mat(); val annotated = Mat()
@@ -47,13 +47,13 @@ class LegacySheetScanner(private val context: Context) {
             for (i in 0 until ids.rows()) {
                 val id = ids.get(i, 0)[0].toInt()
                 if (id in 0..3) {
-                    require(!centers.containsKey(id)) { "Marker doppelt erkannt. Bitte nur ein Blatt fotografieren." }
+                    require(!centers.containsKey(id)) { tr(R.string.scan_duplicate_marker_detected_please_photograph_only_one_sheet) }
                     centers[id] = Point((0..3).sumOf { corners[i].get(0, it)[0] } / 4,
                         (0..3).sumOf { corners[i].get(0, it)[1] } / 4)
                 }
             }
             require(centers.keys.containsAll(listOf(0,1,2,3))) {
-                "Die vier Eckmarker der ersten Seite fehlen. Alle Ecken mit weißem Rand, scharf und ohne Schatten fotografieren."
+                tr(R.string.scan_the_four_corner_markers_on_the_first_page)
             }
             val scale = 3.0
             sourcePoints.fromList((0..3).map { centers.getValue(it) })
@@ -81,14 +81,14 @@ class LegacySheetScanner(private val context: Context) {
                     warped.get((y*scale+7.5*sin(t)).roundToInt(), (x*scale+7.5*cos(t)).roundToInt())[0] < 210
                 } >= 2) visible++
             }
-            require(visible >= 190) { "Das Layout passt nicht zu BC-02 / Seite 1 oder das Foto ist zu unscharf. Bitte Vorlage prüfen." }
+            require(visible >= 190) { tr(R.string.scan_the_layout_does_not_match_bc_02_page) }
             val warnings = mutableListOf<String>()
             val values = profile.grids.mapIndexed { m, g -> (0..6).map { d ->
                 val scores = (0..10).map { v -> fill(g.x[d], g.zero+(g.ten-g.zero)*v/10) }
                 val marked = scores.indices.filter { scores[it] >= 0.48 }
                 val weak = scores.any { it in 0.23..<0.48 }
                 val value = if (marked.size == 1 && !weak) marked.single().toDouble() else null
-                if (marked.size > 1 || weak) warnings += "${metricNames[m]}, ${dayLabels[d]}: unklare Markierung – bitte prüfen."
+                if (marked.size > 1 || weak) warnings += tr(R.string.scan_unclear_mark_please_check, metricNames[m], dayLabels[d])
                 marked.forEach { v -> Imgproc.circle(annotated, Point(g.x[d]*scale,(g.zero+(g.ten-g.zero)*v/10)*scale),
                     12, if (value != null) Scalar(25.0,140.0,110.0) else Scalar(220.0,120.0,20.0), 3) }
                 value
@@ -99,9 +99,9 @@ class LegacySheetScanner(private val context: Context) {
                     val score = fill(profile.factorX[d],y)
                     if (score >= 0.48) { mask = mask or (1 shl f)
                         Imgproc.circle(annotated,Point(profile.factorX[d]*scale,y*scale),12,Scalar(25.0,140.0,110.0),3) }
-                    else if (score >= 0.23) warnings += "${dayLabels[d]}: Belastungsfaktor ${f+1} prüfen."
+                    else if (score >= 0.23) warnings += tr(R.string.scan_please_check_stress_factor, dayLabels[d], f+1)
                 }
-                if (Integer.bitCount(mask)>3) warnings += "${dayLabels[d]}: mehr als drei Belastungsfaktoren."
+                if (Integer.bitCount(mask)>3) warnings += tr(R.string.scan_more_than_three_stress_factors, dayLabels[d])
                 mask
             }
             val aligned = File.createTempFile("aligned-", ".jpg", context.cacheDir)
@@ -119,17 +119,17 @@ class LegacySheetScanner(private val context: Context) {
         file.outputStream().use { check(b.compress(Bitmap.CompressFormat.JPEG,94,it)) }; b.recycle()
     }
 }
-val dayLabels = listOf("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+val dayLabels: List<String> get() = listOf(tr(R.string.day_mon), tr(R.string.day_tue), tr(R.string.day_wed), tr(R.string.day_thu), tr(R.string.day_fri), tr(R.string.day_sat), tr(R.string.day_sun))
 
 /** Respect EXIF including mirrored orientations; cap processing memory. */
 fun loadOriented(file: File): Bitmap {
     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.path, options)
-    require(options.outWidth > 0 && options.outHeight > 0) { "Kein lesbares Bild." }
+    require(options.outWidth > 0 && options.outHeight > 0) { tr(R.string.scan_no_readable_image) }
     var sample = 1
     while (max(options.outWidth,options.outHeight)/sample > 3600) sample *= 2
     val b = BitmapFactory.decodeFile(file.path,BitmapFactory.Options().apply { inSampleSize=sample })
-        ?: error("Bild kann nicht geöffnet werden.")
+        ?: error(tr(R.string.scan_the_image_could_not_be_opened))
     val matrix = Matrix()
     when (ExifInterface(file).getAttributeInt(ExifInterface.TAG_ORIENTATION,ExifInterface.ORIENTATION_NORMAL)) {
         ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f,1f)

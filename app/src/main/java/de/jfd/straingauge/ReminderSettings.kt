@@ -92,7 +92,7 @@ fun ReminderSettings() {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = "Erinnerungen",
+            text = tr(R.string.reminder_reminders),
             style = MaterialTheme.typography.titleLarge
         )
 
@@ -103,11 +103,10 @@ fun ReminderSettings() {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text("An fehlenden Wochenrückblick erinnern")
+                Text(tr(R.string.reminder_remind_me_about_a_missing_weekly_review))
 
                 Text(
-                    text = "Täglich um 6:00 Uhr, " +
-                            "solange die Vorwoche noch nicht erfasst ist.",
+                    text = tr(R.string.reminder_daily_at_6_00_am_until_the_previous),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -140,27 +139,21 @@ fun ReminderSettings() {
 
         if (!notificationsAllowed) {
             Text(
-                text = "Benachrichtigungen müssen in Android " +
-                        "erlaubt sein. Nach einer Ablehnung kannst du " +
-                        "sie über das Glocken-Symbol freigeben.",
+                text = tr(R.string.reminder_notifications_must_be_allowed_in_android_if_permission),
                 style = MaterialTheme.typography.bodySmall
             )
         }
 
         if (enabled && paused) {
             Text(
-                text = "Für diese Kalenderwoche pausiert. " +
-                        "Ab nächstem Montag wieder aktiv.",
+                text = tr(R.string.reminder_paused_for_this_calendar_week_reminders_resume_next),
                 style = MaterialTheme.typography.bodySmall
             )
         }
 
         if (enabled && !exactAllowed) {
             Text(
-                text = "Ohne Freigabe für genaue Alarme kann " +
-                        "Android die Erinnerung nach 6:00 Uhr zustellen. " +
-                        "Über das Wecker-Symbol kannst du die " +
-                        "Zeitfreigabe erteilen.",
+                text = tr(R.string.reminder_without_exact_alarm_permission_android_may_deliver_the),
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -170,7 +163,7 @@ fun ReminderSettings() {
         ) {
             AppIconButton(
                 icon = Icons.Filled.Notifications,
-                label = "Android-Benachrichtigungseinstellungen",
+                label = tr(R.string.reminder_android_notification_settings),
                 onClick = {
                     openNotificationSettings()
                 }
@@ -183,7 +176,7 @@ fun ReminderSettings() {
             ) {
                 AppIconButton(
                     icon = Icons.Filled.Alarm,
-                    label = "Genaue Erinnerungszeit erlauben",
+                    label = tr(R.string.reminder_allow_exact_reminder_timing),
                     onClick = {
                         context.startActivity(
                             Intent(
@@ -201,7 +194,7 @@ fun ReminderSettings() {
             if (enabled) {
                 AppIconButton(
                     icon = Icons.Filled.PlayArrow,
-                    label = "Erinnerung jetzt prüfen",
+                    label = tr(R.string.reminder_check_reminder_now),
                     onClick = {
                         context.sendBroadcast(
                             Intent(

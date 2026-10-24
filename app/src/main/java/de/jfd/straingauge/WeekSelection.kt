@@ -17,8 +17,9 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 
-private val weekDateFormat =
-    DateTimeFormatter.ofPattern("dd.MM.yyyy")
+private val weekDateFormat get() =
+    DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+        .withLocale(AppStrings.locale)
 
 fun mondayOf(date: LocalDate): LocalDate =
     date.with(
@@ -35,7 +36,7 @@ private fun weekNumberLabel(start: LocalDate): String {
     val number = start.get(fields.weekOfWeekBasedYear())
     val year = start.get(fields.weekBasedYear())
 
-    return "KW $number · $year"
+    return tr(R.string.week_week, number, year)
 }
 
 @Composable
@@ -57,7 +58,7 @@ fun WeekSelector(
     ) {
         AppIconButton(
             icon = Icons.Filled.ChevronLeft,
-            label = "Vorherige Woche",
+            label = tr(R.string.week_previous_week),
             onClick = {
                 onWeekSelected(selectedWeek.minusWeeks(1))
             },
@@ -80,7 +81,7 @@ fun WeekSelector(
             ) {
                 Icon(
                     imageVector = Icons.Filled.CalendarMonth,
-                    contentDescription = "Woche auswählen"
+                    contentDescription = tr(R.string.week_choose_a_week)
                 )
 
                 Text(
@@ -97,7 +98,7 @@ fun WeekSelector(
 
         AppIconButton(
             icon = Icons.Filled.ChevronRight,
-            label = "Nächste Woche",
+            label = tr(R.string.week_next_week),
             onClick = {
                 onWeekSelected(selectedWeek.plusWeeks(1))
             },
@@ -150,7 +151,7 @@ private fun WeekPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Woche auswählen")
+            Text(tr(R.string.week_choose_a_week))
         },
         text = {
             Column(
@@ -164,7 +165,7 @@ private fun WeekPickerDialog(
                 ) {
                     AppIconButton(
                         icon = Icons.Filled.ChevronLeft,
-                        label = "Vorheriges Jahr",
+                        label = tr(R.string.week_previous_year),
                         onClick = { displayedYear-- }
                     )
 
@@ -175,7 +176,7 @@ private fun WeekPickerDialog(
 
                     AppIconButton(
                         icon = Icons.Filled.ChevronRight,
-                        label = "Nächstes Jahr",
+                        label = tr(R.string.week_next_year),
                         onClick = { displayedYear++ }
                     )
                 }
@@ -254,14 +255,14 @@ private fun WeekPickerDialog(
         confirmButton = {
             AppIconButton(
                 icon = Icons.Filled.Close,
-                label = "Schließen",
+                label = tr(R.string.action_close),
                 onClick = onDismiss
             )
         },
         dismissButton = {
             AppIconButton(
                 icon = Icons.Filled.Today,
-                label = "Aktuelle Woche auswählen",
+                label = tr(R.string.week_choose_the_current_week),
                 onClick = {
                     onSelected(mondayOf(LocalDate.now()))
                 }

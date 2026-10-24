@@ -97,24 +97,17 @@ fun ReminderStartupPermissions() {
                 showExactAlarmExplanation = false
             },
             title = {
-                Text("Erinnerung um 6:00 Uhr")
+                Text(tr(R.string.reminder_reminder_at_6_00_am))
             },
             text = {
                 Text(
-                    "Die App erinnert dich morgens, wenn für " +
-                            "die Vorwoche noch keine Tageswerte vorliegen.\n\n" +
-                            "Damit Android die Erinnerung gezielt um " +
-                            "6:00 Uhr zustellen kann, erlaube bitte " +
-                            "„Wecker und Erinnerungen“ auf der " +
-                            "folgenden Einstellungsseite.\n\n" +
-                            "Ohne diese Freigabe kann die Erinnerung " +
-                            "später eintreffen."
+                    tr(R.string.reminder_the_app_reminds_you_in_the_morning_if)
                 )
             },
             confirmButton = {
                 AppIconButton(
                     icon = Icons.Filled.Alarm,
-                    label = "Zeitfreigabe öffnen",
+                    label = tr(R.string.reminder_open_alarm_permission_settings),
                     onClick = {
                         showExactAlarmExplanation = false
 
@@ -135,7 +128,7 @@ fun ReminderStartupPermissions() {
             dismissButton = {
                 AppIconButton(
                     icon = Icons.Filled.Close,
-                    label = "Vorerst überspringen",
+                    label = tr(R.string.reminder_skip_for_now),
                     onClick = {
                         showExactAlarmExplanation = false
                     }

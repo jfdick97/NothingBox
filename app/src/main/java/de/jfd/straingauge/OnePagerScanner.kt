@@ -20,7 +20,7 @@ import kotlin.math.*
  * No OCR or network service: the top-left dot identifies the left page. */
 class SheetScanner(private val context: Context) {
     fun analyze(source: File): ScanResult {
-        check(OpenCVLoader.initLocal()) { "OpenCV konnte nicht geladen werden." }
+        check(OpenCVLoader.initLocal()) { tr(R.string.scan_opencv_could_not_be_loaded) }
         val bitmap=loadOriented(source)
         val rgba=Mat();val photo=Mat();val ids=Mat();val corners=mutableListOf<Mat>()
         try {
@@ -50,15 +50,15 @@ class SheetScanner(private val context: Context) {
             val referenceDesc=mat();val photoDesc=mat();val empty=mat()
             orb.detectAndCompute(template,empty,referenceKeys,referenceDesc)
             orb.detectAndCompute(photo,empty,photoKeys,photoDesc)
-            require(!referenceDesc.empty() && !photoDesc.empty()){ "Zu wenig erkennbare Druckelemente. Bitte schärfer fotografieren." }
+            require(!referenceDesc.empty() && !photoDesc.empty()){ tr(R.string.scan_not_enough_printed_features_are_visible_please_take) }
             matcher.knnMatch(referenceDesc,photoDesc,matches,2)
             val good=matches.mapNotNull{m->val pair=m.toArray();if(pair.size==2 && pair[0].distance<.72*pair[1].distance)pair[0] else null}
-            require(good.size>=30){"OnePager nicht erkannt. Die linke Seite mit allen vier L-Marken vollständig aufnehmen."}
+            require(good.size>=30){tr(R.string.scan_onepager_not_recognised_capture_the_entire_left_page)}
             val rk=referenceKeys.toArray();val pk=photoKeys.toArray()
             val from=pointMat(good.map{pk[it.trainIdx].pt});val to=pointMat(good.map{rk[it.queryIdx].pt})
             val mask=mat()
             val initial=Calib3d.findHomography(from,to,Calib3d.RANSAC,4.0,mask).also{owned+=it}
-            require(!initial.empty() && Core.countNonZero(mask)>=30 && Core.countNonZero(mask)>=good.size*.25){"Das Foto lässt sich nicht sicher ausrichten."}
+            require(!initial.empty() && Core.countNonZero(mask)>=30 && Core.countNonZero(mask)>=good.size*.25){tr(R.string.scan_the_photo_could_not_be_aligned_reliably)}
             val coarse=mat()
             Imgproc.warpPerspective(photo,coarse,initial,template.size(),Imgproc.INTER_LINEAR,Core.BORDER_CONSTANT,Scalar(255.0))
             val markers=(0..3).map{i->val a=json.getJSONArray("markers").getJSONArray(i);Point(a.getDouble(0)*3,a.getDouble(1)*3)}
@@ -68,7 +68,7 @@ class SheetScanner(private val context: Context) {
                     (a.getDouble(2)*3).roundToInt()-(a.getDouble(0)*3).roundToInt()+24,
                     (a.getDouble(3)*3).roundToInt()-(a.getDouble(1)*3).roundToInt()+24)
                 val (shift,score)=matchShift(coarse,template,r,24,24)
-                require(score>=.65){"L-Marke ${i+1} nicht sicher erkannt. Alle Ecken frei halten und das Blatt eben legen."}
+                require(score>=.65){tr(R.string.scan_l_shaped_mark_could_not_be_identified_reliably, i+1)}
                 Point(markers[i].x+shift.x,markers[i].y+shift.y)
             }
             val correction=Imgproc.getPerspectiveTransform(pointMat(found),pointMat(markers)).also{owned+=it}
@@ -82,7 +82,7 @@ class SheetScanner(private val context: Context) {
                 for(dy in -r..r)for(dx in -r..r)if(dx*dx+dy*dy<=r*r){n++;if(binary.get(cy+dy,cx+dx)[0]>0)black++}
                 return black.toDouble()/n
             }
-            require(fill((20.8356*3).roundToInt(),(20.726*3).roundToInt(),3)>.45){"Orientierungspunkt oben links fehlt. Bitte die linke Seite fotografieren."}
+            require(fill((20.8356*3).roundToInt(),(20.726*3).roundToInt(),3)>.45){tr(R.string.scan_the_orientation_dot_at_the_top_left_is)}
             val warnings=mutableListOf<String>()
             val values=MutableList(4){MutableList<Double?>(7){null}}
             var confirmedFrames=0
@@ -93,7 +93,7 @@ class SheetScanner(private val context: Context) {
                 // Includes scale ticks below the box. Local registration compensates
                 // small paper bends; the filled dot occupies only a small patch.
                 val (shift,score)=matchShift(aligned,template,Rect(x0,y0-3,x1-x0,y1-y0+33),12,18)
-                if(score<.45){warnings+="${dayLabels[d]}, ${metricNames[m]}: Skalenfeld nicht sicher erkannt.";continue}
+                if(score<.45){warnings+=tr(R.string.scan_scale_field_could_not_be_recognised_reliably, dayLabels[d], metricNames[m]);continue}
                 confirmedFrames++
                 val dx = shift.x.roundToInt()
                 val dy = shift.y.roundToInt()
@@ -212,8 +212,7 @@ class SheetScanner(private val context: Context) {
 
                         if (clipped) {
                             warnings +=
-                                "${dayLabels[d]}, ${metricNames[m]}: " +
-                                        "Markierung am Suchrand abgeschnitten – bitte prüfen."
+                                tr(R.string.scan_mark_is_clipped_at_the_search_boundary_please, dayLabels[d], metricNames[m])
                         } else {
                             val value = (
                                     10.0 * (x - frameLeft) /
@@ -245,8 +244,7 @@ class SheetScanner(private val context: Context) {
                         }
                     } else if (candidates.size > 1) {
                         warnings +=
-                            "${dayLabels[d]}, ${metricNames[m]}: " +
-                                    "mehrere Punkte – bitte auswählen."
+                            tr(R.string.scan_multiple_dots_please_choose_one, dayLabels[d], metricNames[m])
 
                         candidates.forEach { i ->
                             Imgproc.circle(
@@ -275,8 +273,7 @@ class SheetScanner(private val context: Context) {
                         try {
                             if (Core.countNonZero(inner) > inner.total() * 0.015) {
                                 warnings +=
-                                    "${dayLabels[d]}, ${metricNames[m]}: " +
-                                            "schwache/unklare Markierung prüfen."
+                                    tr(R.string.scan_weak_or_unclear_mark_please_check, dayLabels[d], metricNames[m])
                             }
                         } finally {
                             inner.release()
@@ -291,7 +288,7 @@ class SheetScanner(private val context: Context) {
                     kernel.release()
                 }
             }
-            require(confirmedFrames>=22){"Das Layout passt nicht zur linken OnePager-Seite oder ist zu unscharf."}
+            require(confirmedFrames>=22){tr(R.string.scan_the_layout_does_not_match_the_left_onepager)}
             val factors=(0..6).map{d->
                 var bits=0
                 for(f in 0..9){
@@ -299,9 +296,9 @@ class SheetScanner(private val context: Context) {
                     val y=(json.getJSONArray("factorY").getDouble(f)*3).roundToInt()
                     val amount=fill(x,y,7)
                     if(amount>=.5){bits=bits or (1 shl f);Imgproc.circle(annotated,Point(x.toDouble(),y.toDouble()),15,Scalar(25.0,140.0,110.0),2)}
-                    else if(amount>=.23){warnings+="${dayLabels[d]}: Belastungsfaktor ${f+1} prüfen."}
+                    else if(amount>=.23){warnings+=tr(R.string.scan_please_check_stress_factor, dayLabels[d], f+1)}
                 }
-                if(Integer.bitCount(bits)>3)warnings+="${dayLabels[d]}: mehr als drei Belastungsfaktoren."
+                if(Integer.bitCount(bits)>3)warnings+=tr(R.string.scan_more_than_three_stress_factors, dayLabels[d])
                 bits
             }
             val cleanFile=File.createTempFile("aligned-",".jpg",context.cacheDir)
@@ -314,7 +311,7 @@ class SheetScanner(private val context: Context) {
     }
     private fun matchShift(image:Mat,reference:Mat,rect:Rect,sx:Int,sy:Int):Pair<Point,Double> {
         val region=Rect(rect.x-sx,rect.y-sy,rect.width+2*sx,rect.height+2*sy)
-        require(region.x>=0 && region.y>=0 && region.x+region.width<=image.cols() && region.y+region.height<=image.rows()){"Suchbereich außerhalb der Vorlage."}
+        require(region.x>=0 && region.y>=0 && region.x+region.width<=image.cols() && region.y+region.height<=image.rows()){tr(R.string.scan_search_area_is_outside_the_template)}
         val patch=reference.submat(rect);val search=image.submat(region);val result=Mat()
         try {Imgproc.matchTemplate(search,patch,result,Imgproc.TM_CCOEFF_NORMED);val mm=Core.minMaxLoc(result)
             return Point(mm.maxLoc.x-sx,mm.maxLoc.y-sy) to mm.maxVal
