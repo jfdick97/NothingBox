@@ -11,11 +11,14 @@ android {
         applicationId = "de.jfd.straingauge"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.2.1"
+        versionCode = 7
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }

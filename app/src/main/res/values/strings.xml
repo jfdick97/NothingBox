@@ -255,7 +255,7 @@
     <string name="ui_use_two_fingers_to_zoom_and_pan" formatted="false">"Mit zwei Fingern zoomen und verschieben."</string>
     <string name="ui_values_for_will_be_deleted_the_scan_photo">"Die Werte vom %1$s werden gelöscht. Das Scan-Foto bleibt erhalten."</string>
     <string name="ui_values_that_have_not_been_saved_will_be" formatted="false">"Die noch nicht gespeicherten Werte werden verworfen."</string>
-    <string name="ui_version_1_2_1_personal_strain_dashboard" formatted="false">"Version 1.2.1 · Persönliches Belastungs-Cockpit"</string>
+    <string name="app_version_description">Version %1$s · Dein persönliches Belastungs-Dashboard</string>
     <string name="ui_week_starting">"Woche ab %1$s"</string>
     <string name="ui_weekly_review_backup_zip">"Wochenblick-Sicherung-%1$s.zip"</string>
     <string name="ui_weekly_statistics" formatted="false">"Wochenstatistik"</string>

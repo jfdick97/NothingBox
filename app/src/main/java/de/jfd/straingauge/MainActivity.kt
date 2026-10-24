@@ -886,7 +886,13 @@ fun Settings(model:AppModel){
         Text(tr(R.string.ui_opens_a_synthetically_filled_sheet_for_review_sample),style=MaterialTheme.typography.bodySmall)
         Text(tr(R.string.ui_template_onepager_left_page),style=MaterialTheme.typography.titleMedium)
         Text(tr(R.string.ui_the_onepager_template_is_aligned_using_printed_features))
-        Text(tr(R.string.ui_version_1_2_1_personal_strain_dashboard),style=MaterialTheme.typography.labelSmall)
+        Text(
+            text = tr(
+                R.string.app_version_description,
+                BuildConfig.VERSION_NAME
+            ),
+            style = MaterialTheme.typography.labelSmall
+        )
     }
     if (model.showDeleteOptions) {
         AlertDialog(

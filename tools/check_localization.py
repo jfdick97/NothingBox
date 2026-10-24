@@ -57,13 +57,18 @@ def main():
         placeholders = lambda value: Counter(re.findall(r'%\d+\$[sdf]', value))
         assert placeholders(german[name]) == placeholders(english[name]), f'Format mismatch: {name}'
     for path in SRC.glob('*.kt'):
-        for name in re.findall(r'R\.string\.([a-zA-Z0-9_]+)', path.read_text()):
+        if path.name == 'DefaultStrings.kt':
+            continue
+        for name in re.findall(
+            r'R\.string\.([a-zA-Z0-9_]+)',
+            path.read_text(encoding='utf-8')
+        ):
             assert name in german, f'Unknown string {name} in {path.name}'
     expected = fallback_source(german)
     fallback = SRC / 'DefaultStrings.kt'
     if args.update_fallback:
-        fallback.write_text(expected)
-    assert fallback.read_text() == expected, 'Run tools/check_localization.py --update-fallback'
+        fallback.write_text(expected, encoding='utf-8')
+    assert fallback.read_text(encoding='utf-8') == expected,'Run tools/check_localization.py --update-fallback'
     for path in RES.rglob('*.xml'):
         ET.parse(path)
     print(f'PASS: {len(german)} default strings; {len(english)} English translations; placeholders, references, XML, and JVM fallback agree.')

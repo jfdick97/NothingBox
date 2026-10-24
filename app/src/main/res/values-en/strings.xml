@@ -252,7 +252,7 @@
     <string name="ui_use_two_fingers_to_zoom_and_pan" formatted="false">"Use two fingers to zoom and pan."</string>
     <string name="ui_values_for_will_be_deleted_the_scan_photo">"Values for %1$s will be deleted. The scan photo will be kept."</string>
     <string name="ui_values_that_have_not_been_saved_will_be" formatted="false">"Values that have not been saved will be discarded."</string>
-    <string name="ui_version_1_2_1_personal_strain_dashboard" formatted="false">"Version 1.2.1 · Personal strain dashboard"</string>
+    <string name="app_version_description">Version %1$s · Your personal strain dashboard</string>
     <string name="ui_week_starting">"Week starting %1$s"</string>
     <string name="ui_weekly_review_backup_zip">"Weekly-review-backup-%1$s.zip"</string>
     <string name="ui_weekly_statistics" formatted="false">"Weekly statistics"</string>
