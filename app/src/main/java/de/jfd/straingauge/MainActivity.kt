@@ -79,6 +79,7 @@ class MainActivity:AppCompatActivity(){
 fun App(model:AppModel){
     val days by model.days.collectAsStateWithLifecycle()
     val scans by model.scans.collectAsStateWithLifecycle()
+    var showLanguageSettings by remember { mutableStateOf(false) }
     var discard by remember{mutableStateOf(false)}
     var photo by remember{mutableStateOf<File?>(null)}
     var edit by remember{mutableStateOf<DayEntry?>(null)}
@@ -116,6 +117,13 @@ fun App(model:AppModel){
                                 contentDescription = tr(R.string.ui_open_saved_scans)
                             )
                         }
+
+                        AppIconButton(
+                            icon = Icons.Filled.Language,
+                            label = tr(R.string.language_title),
+                            onClick = { showLanguageSettings = true },
+                            enabled = !model.busy
+                        )
 
                         IconButton(
                             onClick = { model.screen = Screen.SETTINGS }
@@ -202,6 +210,22 @@ fun App(model:AppModel){
                 }
             )
         }
+    }
+    if (showLanguageSettings && model.screen == Screen.DASHBOARD) {
+        AlertDialog(
+            onDismissRequest = { showLanguageSettings = false },
+            icon = { Icon(Icons.Filled.Language, contentDescription = null) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    LanguageSettings(enabled = !model.busy)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageSettings = false }) {
+                    Text(tr(R.string.action_close))
+                }
+            }
+        )
     }
     model.message?.let{message -> AlertDialog(onDismissRequest={model.message=null},title={Text(tr(R.string.ui_notice))},text={Text(message)},confirmButton={TextButton(onClick={model.message=null}){Text(tr(R.string.action_ok))}})}
     if(model.busy)Dialog(onDismissRequest={},properties=DialogProperties(dismissOnBackPress=false,dismissOnClickOutside=false)){
@@ -846,8 +870,6 @@ fun Settings(model:AppModel){
 
         HorizontalDivider()
 
-        LanguageSettings(enabled = !model.busy)
-        HorizontalDivider()
         ReminderSettings()
 
         HorizontalDivider()
