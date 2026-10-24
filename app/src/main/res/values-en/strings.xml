@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_back" formatted="false">"Back"</string>
+    <string name="action_cancel" formatted="false">"Cancel"</string>
+    <string name="action_close" formatted="false">"Close"</string>
+    <string name="action_delete" formatted="false">"Delete"</string>
+    <string name="action_ok" formatted="false">"OK"</string>
+    <string name="action_save" formatted="false">"Save"</string>
+    <string name="backup_a_photo_is_missing_or_its_checksum_does" formatted="false">"A photo is missing or its checksum does not match."</string>
+    <string name="backup_backup_exceeds_the_supported_size_250_mb_in" formatted="false">"Backup exceeds the supported size (250 MB in total, 25 MB per photo)."</string>
+    <string name="backup_backup_is_too_large_maximum_250_mb_in" formatted="false">"Backup is too large (maximum 250 MB in total, 25 MB per photo)."</string>
+    <string name="backup_disallowed_archive_path" formatted="false">"Disallowed archive path."</string>
+    <string name="backup_duplicate_archive_file" formatted="false">"Duplicate archive file."</string>
+    <string name="backup_duplicate_days_in_backup" formatted="false">"Duplicate days in backup."</string>
+    <string name="backup_duplicate_scan_ids" formatted="false">"Duplicate scan IDs."</string>
+    <string name="backup_four_scale_values_are_required" formatted="false">"Four scale values are required."</string>
+    <string name="backup_invalid_archive_or_too_many_files" formatted="false">"Invalid archive or too many files."</string>
+    <string name="backup_invalid_factors_in_an_older_backup" formatted="false">"Invalid factors in an older backup."</string>
+    <string name="backup_invalid_file_name" formatted="false">"Invalid file name."</string>
+    <string name="backup_missing_scan_reference" formatted="false">"Missing scan reference."</string>
+    <string name="backup_scan_file_is_missing">"Scan file is missing: %1$s"</string>
+    <string name="backup_target_file_already_exists" formatted="false">"Target file already exists."</string>
+    <string name="backup_too_many_entries" formatted="false">"Too many entries."</string>
+    <string name="backup_unexpected_files_in_backup" formatted="false">"Unexpected files in backup."</string>
+    <string name="backup_unknown_backup_format" formatted="false">"Unknown backup format."</string>
+    <string name="camera_allow_camera_access" formatted="false">"Allow camera access"</string>
+    <string name="camera_allow_camera_access_or_use_the_image_icon" formatted="false">"Allow camera access or use the image icon to open an existing photo."</string>
+    <string name="camera_camera_unavailable">"Camera unavailable: %1$s"</string>
+    <string name="camera_capture_the_entire_left_onepager_page_as_flat" formatted="false">"Capture the entire left OnePager page as flat as possible. All four L-shaped marks and the dot at the top left must be visible."</string>
+    <string name="camera_could_not_take_the_photo">"Could not take the photo: %1$s"</string>
+    <string name="camera_dismiss_instructions" formatted="false">"Dismiss instructions"</string>
+    <string name="camera_open_existing_photo" formatted="false">"Open existing photo"</string>
+    <string name="camera_scan_weekly_sheet" formatted="false">"Scan weekly sheet"</string>
+    <string name="camera_take_photo" formatted="false">"Take photo"</string>
+    <string name="data_conflict_emotional_strain" formatted="false">"Conflict / emotional strain"</string>
+    <string name="data_duplicate_dates" formatted="false">"Duplicate dates"</string>
+    <string name="data_extra_factor_1" formatted="false">"Extra factor 1"</string>
+    <string name="data_extra_factor_2" formatted="false">"Extra factor 2"</string>
+    <string name="data_extra_factor_names_must_not_exceed_120_characters" formatted="false">"Extra factor names must not exceed 120 characters."</string>
+    <string name="data_interruptions_being_available" formatted="false">"Interruptions / being available"</string>
+    <string name="data_invalid_date">"Invalid date: %1$s"</string>
+    <string name="data_invalid_stress_factors" formatted="false">"Invalid stress factors"</string>
+    <string name="data_my_own_standards_expectations" formatted="false">"My own standards / expectations"</string>
+    <string name="data_personal_responsibilities_commitments" formatted="false">"Personal responsibilities / commitments"</string>
+    <string name="data_please_enter_a_name_for_extra_factor_1" formatted="false">"Please enter a name for extra factor 1."</string>
+    <string name="data_please_enter_a_name_for_extra_factor_2" formatted="false">"Please enter a name for extra factor 2."</string>
+    <string name="data_scale_value_is_outside_0_10" formatted="false">"Scale value is outside 0–10"</string>
+    <string name="data_too_little_sleep_insufficient_recovery" formatted="false">"Too little sleep / insufficient recovery"</string>
+    <string name="data_too_many_tasks_at_once" formatted="false">"Too many tasks at once"</string>
+    <string name="data_uncertainty_unanswered_questions" formatted="false">"Uncertainty / unanswered questions"</string>
+    <string name="data_workload_time_pressure" formatted="false">"Workload / time pressure"</string>
+    <string name="day_fri" formatted="false">"Fri"</string>
+    <string name="day_mon" formatted="false">"Mon"</string>
+    <string name="day_sat" formatted="false">"Sat"</string>
+    <string name="day_sun" formatted="false">"Sun"</string>
+    <string name="day_thu" formatted="false">"Thu"</string>
+    <string name="day_tue" formatted="false">"Tue"</string>
+    <string name="day_wed" formatted="false">"Wed"</string>
+    <string name="language_description" formatted="false">"Your language choice is saved. Custom factor names and recorded values are preserved."</string>
+    <string name="language_system" formatted="false">"System default"</string>
+    <string name="language_title" formatted="false">"Language"</string>
+    <string name="message_all_values_and_saved_scans_have_been_deleted" formatted="false">"All values and saved scans have been deleted."</string>
+    <string name="message_csv_exported" formatted="false">"CSV exported."</string>
+    <string name="message_day_deleted" formatted="false">"Day deleted."</string>
+    <string name="message_days_saved">"%1$s days saved."</string>
+    <string name="message_entry_updated" formatted="false">"Entry updated."</string>
+    <string name="message_existing_data_kept" formatted="false">"Existing data kept."</string>
+    <string name="message_full_backup_exported" formatted="false">"Full backup exported."</string>
+    <string name="message_image_is_larger_than_35_mb" formatted="false">"Image is larger than 35 MB."</string>
+    <string name="message_import_complete" formatted="false">"Import complete."</string>
+    <string name="message_no_values_available_enter_at_least_one_value" formatted="false">"No values available. Enter at least one value or cancel."</string>
+    <string name="message_photo_files_could_not_be_deleted">" %1$s photo files could not be deleted."</string>
+    <string name="message_please_choose_monday_as_the_start_of_the" formatted="false">"Please choose Monday as the start of the week."</string>
+    <string name="message_sample_factor_1" formatted="false">"Sample factor 1"</string>
+    <string name="message_sample_factor_2" formatted="false">"Sample factor 2"</string>
+    <string name="message_scan_deleted_daily_values_were_kept" formatted="false">"Scan deleted; daily values were kept."</string>
+    <string name="message_synthetic_sample_sheet_saving_creates_real_entries_you" formatted="false">"Synthetic sample sheet. Saving creates real entries; you can cancel to try it without saving."</string>
+    <string name="message_the_database_has_been_cleared_some_photo_or" formatted="false">"The database has been cleared. Some photo or cache files could not be deleted."</string>
+    <string name="message_the_operation_failed" formatted="false">"The operation failed."</string>
+    <string name="message_week_deleted_days_and_scans">"Week deleted: %1$s days and %2$s scans."</string>
+    <string name="metric_agency" formatted="false">"Room to act"</string>
+    <string name="metric_demands" formatted="false">"Demands"</string>
+    <string name="metric_energy" formatted="false">"Energy"</string>
+    <string name="metric_tension" formatted="false">"Tension"</string>
+    <string name="reminder_allow_exact_reminder_timing" formatted="false">"Allow exact reminder timing"</string>
+    <string name="reminder_android_notification_settings" formatted="false">"Android notification settings"</string>
+    <string name="reminder_check_reminder_now" formatted="false">"Check reminder now"</string>
+    <string name="reminder_could_not_start_the_reminder_check" formatted="false">"Could not start the reminder check."</string>
+    <string name="reminder_daily_at_6_00_am_until_the_previous" formatted="false">"Daily at 6:00 am until the previous week has been recorded."</string>
+    <string name="reminder_no_daily_entries_have_been_saved_for_yet">"No daily entries have been saved for %1$s yet."</string>
+    <string name="reminder_notifications_must_be_allowed_in_android_if_permission" formatted="false">"Notifications must be allowed in Android. If permission was denied, use the bell icon to enable them in system settings."</string>
+    <string name="reminder_open_alarm_permission_settings" formatted="false">"Open alarm permission settings"</string>
+    <string name="reminder_pause_for_this_week" formatted="false">"Pause for this week"</string>
+    <string name="reminder_paused_for_this_calendar_week_reminders_resume_next" formatted="false">"Paused for this calendar week. Reminders resume next Monday."</string>
+    <string name="reminder_remind_me_about_a_missing_weekly_review" formatted="false">"Remind me about a missing weekly review"</string>
+    <string name="reminder_reminder_at_6_00_am" formatted="false">"Reminder at 6:00 am"</string>
+    <string name="reminder_reminder_check_failed" formatted="false">"Reminder check failed."</string>
+    <string name="reminder_reminders" formatted="false">"Reminders"</string>
+    <string name="reminder_reminds_you_when_the_previous_week_has_not" formatted="false">"Reminds you when the previous week has not been recorded yet."</string>
+    <string name="reminder_skip_for_now" formatted="false">"Skip for now"</string>
+    <string name="reminder_the_app_reminds_you_in_the_morning_if" formatted="false">"The app reminds you in the morning if no daily entries have been saved for the previous week.\n\nTo let Android deliver the reminder at 6:00 am, please allow “Alarms &amp; reminders” on the following settings screen.\n\nWithout this permission, the reminder may arrive later."</string>
+    <string name="reminder_weekly_review" formatted="false">"Weekly review"</string>
+    <string name="reminder_without_exact_alarm_permission_android_may_deliver_the" formatted="false">"Without exact alarm permission, Android may deliver the reminder after 6:00 am. Use the alarm icon to grant permission."</string>
+    <string name="reminder_your_weekly_review_is_still_missing" formatted="false">"Your weekly review is still missing"</string>
+    <string name="scan_duplicate_marker_detected_please_photograph_only_one_sheet" formatted="false">"Duplicate marker detected. Please photograph only one sheet."</string>
+    <string name="scan_l_shaped_mark_could_not_be_identified_reliably">"L-shaped mark %1$s could not be identified reliably. Keep all corners clear and lay the sheet flat."</string>
+    <string name="scan_legacy_frame_warning">"%1$s, %2$s: dot near the frame—please check the value."</string>
+    <string name="scan_mark_is_clipped_at_the_search_boundary_please">"%1$s, %2$s: mark is clipped at the search boundary—please check."</string>
+    <string name="scan_more_than_three_stress_factors">"%1$s: more than three stress factors."</string>
+    <string name="scan_multiple_dots_please_choose_one">"%1$s, %2$s: multiple dots—please choose one."</string>
+    <string name="scan_no_readable_image" formatted="false">"No readable image."</string>
+    <string name="scan_not_enough_printed_features_are_visible_please_take" formatted="false">"Not enough printed features are visible. Please take a sharper photo."</string>
+    <string name="scan_onepager_not_recognised_capture_the_entire_left_page" formatted="false">"OnePager not recognised. Capture the entire left page, including all four L-shaped marks."</string>
+    <string name="scan_opencv_could_not_be_loaded" formatted="false">"OpenCV could not be loaded."</string>
+    <string name="scan_please_check_stress_factor">"%1$s: please check stress factor %2$s."</string>
+    <string name="scan_scale_field_could_not_be_recognised_reliably">"%1$s, %2$s: scale field could not be recognised reliably."</string>
+    <string name="scan_search_area_is_outside_the_template" formatted="false">"Search area is outside the template."</string>
+    <string name="scan_the_four_corner_markers_on_the_first_page" formatted="false">"The four corner markers on the first page are missing. Capture all corners with a white margin, in focus and without shadows."</string>
+    <string name="scan_the_image_could_not_be_opened" formatted="false">"The image could not be opened."</string>
+    <string name="scan_the_layout_does_not_match_bc_02_page" formatted="false">"The layout does not match BC-02 / page 1, or the photo is too blurred. Please check the template."</string>
+    <string name="scan_the_layout_does_not_match_the_left_onepager" formatted="false">"The layout does not match the left OnePager page, or the photo is too blurred."</string>
+    <string name="scan_the_orientation_dot_at_the_top_left_is" formatted="false">"The orientation dot at the top left is missing. Please photograph the left page."</string>
+    <string name="scan_the_photo_could_not_be_aligned_reliably" formatted="false">"The photo could not be aligned reliably."</string>
+    <string name="scan_unclear_mark_please_check">"%1$s, %2$s: unclear mark—please check."</string>
+    <string name="scan_warnings_toggle">"Show or hide recognition notes (%1$s)"</string>
+    <string name="scan_weak_or_unclear_mark_please_check">"%1$s, %2$s: weak or unclear mark—please check."</string>
+    <string name="trend_a_gentle_reminder_for_you" formatted="false">"A gentle reminder for you"</string>
+    <string name="trend_a_pattern_without_a_clear_direction_can_simply" formatted="false">"A pattern without a clear direction can simply be what it is. Perhaps take a moment to notice what supports you in daily life and what asks a lot of you."</string>
+    <string name="trend_an_encouraging_development" formatted="false">"An encouraging development"</string>
+    <string name="trend_demands_are_decreasing" formatted="false">"Demands are decreasing"</string>
+    <string name="trend_demands_are_increasing" formatted="false">"Demands are increasing"</string>
+    <string name="trend_encouraging_developments" formatted="false">"Encouraging developments"</string>
+    <string name="trend_energy_is_decreasing" formatted="false">"Energy is decreasing"</string>
+    <string name="trend_energy_is_increasing" formatted="false">"Energy is increasing"</string>
+    <string name="trend_fewer_demands_can_create_space_it_is_encouraging" formatted="false">"Fewer demands can create space. It is encouraging to see some relief emerging here. You can leave that new space unfilled too."</string>
+    <string name="trend_it_is_good_to_see_your_tension_easing" formatted="false">"It is good to see your tension easing. Perhaps you can identify something that helps and that you would like to keep doing."</string>
+    <string name="trend_more_room_to_act_is_emerging_perhaps_you" formatted="false">"More room to act is emerging. Perhaps you would like to use one of those possibilities deliberately for yourself."</string>
+    <string name="trend_of_metrics_can_be_assessed_there_are_not">"%1$s of %2$s metrics can be assessed. There are not enough daily values for the remaining metrics."</string>
+    <string name="trend_perhaps_a_task_could_be_made_smaller_postponed" formatted="false">"Perhaps a task could be made smaller, postponed, or shared. You do not have to absorb growing demands on your own."</string>
+    <string name="trend_perhaps_there_is_one_small_place_where_you" formatted="false">"Perhaps there is one small place where you can take some pressure off today. A break or a clearer boundary deserves room too."</string>
+    <string name="trend_recovery_deserves_a_place_in_your_plans_perhaps" formatted="false">"Recovery deserves a place in your plans. Perhaps you can make a little more space for it in the coming week."</string>
+    <string name="trend_room_to_act_is_growing" formatted="false">"Room to act is growing"</string>
+    <string name="trend_room_to_act_is_shrinking" formatted="false">"Room to act is shrinking"</string>
+    <string name="trend_several_areas_are_moving_in_a_more_demanding" formatted="false">"Several areas are moving in a more demanding direction. You do not have to solve everything at once. This might be a good time to plan a little less, set a boundary, or ask for support."</string>
+    <string name="trend_tension_is_easing" formatted="false">"Tension is easing"</string>
+    <string name="trend_tension_is_increasing" formatted="false">"Tension is increasing"</string>
+    <string name="trend_the_available_metrics_currently_show_no_pronounced_trend" formatted="false">"The available metrics currently show no pronounced trend under the defined rules."</string>
+    <string name="trend_there_is_not_enough_data_for_a_trend" formatted="false">"There is not enough data for a trend assessment yet. Each metric needs at least four daily values in each of the last three completed weeks."</string>
+    <string name="trend_things_moving_in_a_helpful_direction" formatted="false">"Things moving in a helpful direction"</string>
+    <string name="trend_this_assessment_looks_at_changes_across_three_completed" formatted="false">"This assessment looks at changes across three completed weeks. The insights relate to the values you recorded."</string>
+    <string name="trend_time_to_take_good_care_of_yourself" formatted="false">"Time to take good care of yourself"</string>
+    <string name="trend_two_areas_could_use_a_little_attention_take" formatted="false">"Two areas could use a little attention. Take your time to consider what might be connected and where some relief could be possible. One manageable step is enough to begin."</string>
+    <string name="trend_two_developments_to_keep_an_eye_on" formatted="false">"Two developments to keep an eye on"</string>
+    <string name="trend_unfavourable_developments">"Unfavourable developments: %1$s"</string>
+    <string name="trend_weekly_means" formatted="false">"Weekly means: "</string>
+    <string name="trend_when_your_room_to_act_shrinks_it_can" formatted="false">"When your room to act shrinks, it can help to separate fixed constraints from the choices that are still yours. Perhaps there is one small decision you can reclaim."</string>
+    <string name="trend_your_energy_is_increasing_an_encouraging_development_you" formatted="false">"Your energy is increasing—an encouraging development. You can enjoy it without immediately committing all of it again."</string>
+    <string name="trend_your_entries_show_encouraging_changes_in_several_areas" formatted="false">"Your entries show encouraging changes in several areas. You can take a moment to recognise and appreciate them. Perhaps you would like to note what is helping you right now."</string>
+    <string name="trend_your_trends_at_a_glance" formatted="false">"Your trends at a glance"</string>
+    <string name="trend_your_trends_need_a_little_more_time" formatted="false">"Your trends need a little more time"</string>
+    <string name="ui_3_months" formatted="false">"3 months"</string>
+    <string name="ui_4_weeks" formatted="false">"4 weeks"</string>
+    <string name="ui_aligned" formatted="false">"Aligned"</string>
+    <string name="ui_all" formatted="false">"All"</string>
+    <string name="ui_all_daily_entries_for_this_week_will_be">"%1$s\n\nAll daily entries for this week will be deleted. Related scans will also be deleted unless other daily entries still use them.\n\nYou can export a backup from the menu first."</string>
+    <string name="ui_all_values_and_saved_scan_photos_will_be" formatted="false">"All values and saved scan photos will be removed from this app. This can only be undone by importing an existing ZIP backup."</string>
+    <string name="ui_analyse_sample_sheet" formatted="false">"Analyse sample sheet"</string>
+    <string name="ui_apply" formatted="false">"Apply"</string>
+    <string name="ui_bc_02_page_1_circle_marks_0_10" formatted="false">"BC-02 / page 1 · Circle marks 0–10. Please check the values."</string>
+    <string name="ui_both_photos_will_be_deleted_daily_values_already" formatted="false">"Both photos will be deleted. Daily values already recorded will be kept."</string>
+    <string name="ui_calculation_demands_tension_10_energy_10_room_to" formatted="false">"Calculation: (demands + tension + (10 − energy) + (10 − room to act)) / 4"</string>
+    <string name="ui_continue_reviewing" formatted="false">"Continue reviewing"</string>
+    <string name="ui_continue_without_export" formatted="false">"Continue without export"</string>
+    <string name="ui_could_not_load_the_photo" formatted="false">"Could not load the photo."</string>
+    <string name="ui_create_a_backup_first" formatted="false">"Create a backup first?"</string>
+    <string name="ui_days">"%1$s days"</string>
+    <string name="ui_days_scans_new_days_days_already_exist_have">"%1$s days, %2$s scans.\n%3$s new days.\n%4$s days already exist; %5$s have different values.\nValues: demands / tension / energy / room to act."</string>
+    <string name="ui_delete_all_data" formatted="false">"Delete all data"</string>
+    <string name="ui_delete_data" formatted="false">"Delete data"</string>
+    <string name="ui_delete_day" formatted="false">"Delete day?"</string>
+    <string name="ui_delete_day_c8db52" formatted="false">"Delete day"</string>
+    <string name="ui_delete_everything" formatted="false">"Delete everything"</string>
+    <string name="ui_delete_scan" formatted="false">"Delete scan?"</string>
+    <string name="ui_delete_selected_week" formatted="false">"Delete selected week"</string>
+    <string name="ui_delete_this_week" formatted="false">"Delete this week?"</string>
+    <string name="ui_demands_tension_energy_room_to_act" formatted="false">"Demands / Tension / Energy / Room to act"</string>
+    <string name="ui_discard" formatted="false">"Discard"</string>
+    <string name="ui_discard_scan" formatted="false">"Discard scan?"</string>
+    <string name="ui_edit_entries" formatted="false">"Edit entries"</string>
+    <string name="ui_empty_fields_remain_missing_values_manual_corrections_can" formatted="false">"Empty fields remain missing values. Manual corrections can also be made in steps of 0.1."</string>
+    <string name="ui_existing_days_will_be_kept_unchanged" formatted="false">"Existing days will be kept unchanged."</string>
+    <string name="ui_existing_factors_import_factors">"%1$s\nExisting: %2$s\nFactors: %3$s\nImport: %4$s\nFactors: %5$s"</string>
+    <string name="ui_existing_factors_scan_factors">"%1$s\nExisting: %2$s\nFactors: %3$s\nScan: %4$s\nFactors: %5$s"</string>
+    <string name="ui_export_backup" formatted="false">"Export backup"</string>
+    <string name="ui_export_full_backup" formatted="false">"Export full backup"</string>
+    <string name="ui_export_values_as_csv" formatted="false">"Export values as CSV"</string>
+    <string name="ui_extra_factor_1_for_this_entry" formatted="false">"Extra factor 1 for this entry"</string>
+    <string name="ui_extra_factor_2_for_this_entry" formatted="false">"Extra factor 2 for this entry"</string>
+    <string name="ui_for_python_and_excel_utf_8_semicolon_separated" formatted="false">"For Python and Excel: UTF-8, semicolon-separated, decimal point. CSV is for analysis; use ZIP to restore a backup."</string>
+    <string name="ui_handwritten_names_are_not_read_please_enter_a" formatted="false">"Handwritten names are not read. Please enter a name for each selected extra factor."</string>
+    <string name="ui_import_backup" formatted="false">"Import backup"</string>
+    <string name="ui_latest">"Latest: %1$s · %2$s"</string>
+    <string name="ui_loading_image" formatted="false">"Loading image…"</string>
+    <string name="ui_mean_std_dev">"Mean %1$s · Std. dev. %2$s"</string>
+    <string name="ui_more_than_three_factors_selected_please_check" formatted="false">"More than three factors selected—please check."</string>
+    <string name="ui_my_nothing_box_strain_gauge" formatted="false">"My Nothing Box Strain Gauge"</string>
+    <string name="ui_name_of_extra_factor_1_for_this_week" formatted="false">"Name of extra factor 1 (for this week)"</string>
+    <string name="ui_name_of_extra_factor_2_for_this_week" formatted="false">"Name of extra factor 2 (for this week)"</string>
+    <string name="ui_new_days_will_be_added_for_days_that" formatted="false">"New days will be added. For days that already exist:"</string>
+    <string name="ui_no_daily_entries_have_been_recorded_for_this" formatted="false">"No daily entries have been recorded for this week."</string>
+    <string name="ui_no_day_in_the_selected_period_has_all" formatted="false">"No day in the selected period has all four values yet."</string>
+    <string name="ui_no_scans_saved_yet" formatted="false">"No scans saved yet."</string>
+    <string name="ui_no_stress_factors_have_been_recorded_in_the" formatted="false">"No stress factors have been recorded in the selected period."</string>
+    <string name="ui_no_value_recorded_yet" formatted="false">"No value recorded yet"</string>
+    <string name="ui_no_values" formatted="false">"No values"</string>
+    <string name="ui_none" formatted="false">"none"</string>
+    <string name="ui_notes_from_this_scan">"Notes from this scan:\n%1$s"</string>
+    <string name="ui_notice" formatted="false">"Notice"</string>
+    <string name="ui_of_recorded_days_have_complete_values">"%1$s of %2$s recorded days have complete values."</string>
+    <string name="ui_one_moment" formatted="false">"One moment…"</string>
+    <string name="ui_onepager_left_page_dot_positions_0_10_green" formatted="false">"OnePager · Left page · Dot positions 0–10. Green: recognised; orange: ambiguous. Please check the values."</string>
+    <string name="ui_only_days_with_at_least_one_value_or" formatted="false">"Only days with at least one value or stress factor will be saved."</string>
+    <string name="ui_open_menu" formatted="false">"Open menu"</string>
+    <string name="ui_open_saved_scans" formatted="false">"Open saved scans"</string>
+    <string name="ui_opens_a_synthetically_filled_sheet_for_review_sample" formatted="false">"Opens a synthetically filled sheet for review. Sample values are only stored after saving."</string>
+    <string name="ui_original" formatted="false">"Original"</string>
+    <string name="ui_permanently_delete_this_week" formatted="false">"Permanently delete this week"</string>
+    <string name="ui_processing_and_storage_take_place_on_this_phone" formatted="false">"Processing and storage take place on this phone. The app does not need internet access and does not create automatic cloud backups."</string>
+    <string name="ui_really_delete_all_data" formatted="false">"Really delete all data?"</string>
+    <string name="ui_recognise_review_save" formatted="false">"Recognise. Review. Save."</string>
+    <string name="ui_recognition" formatted="false">"Recognition"</string>
+    <string name="ui_recognition_notes_could_not_be_read" formatted="false">"Recognition notes could not be read."</string>
+    <string name="ui_recorded_days">"%1$s – %2$s · %3$s recorded days"</string>
+    <string name="ui_recorded_days_608dc4">"%1$s recorded days"</string>
+    <string name="ui_removes_all_values_and_saved_scan_photos_from" formatted="false">"Removes all values and saved scan photos from this app."</string>
+    <string name="ui_replace_existing_days_with_incoming_values" formatted="false">"Replace existing days with incoming values"</string>
+    <string name="ui_reset_view" formatted="false">"Reset view"</string>
+    <string name="ui_review_values">"%1$s · Review values"</string>
+    <string name="ui_save_week" formatted="false">"Save week"</string>
+    <string name="ui_some_days_already_exist" formatted="false">"Some days already exist"</string>
+    <string name="ui_standard_deviation_in_points_higher_values_mean_greater" formatted="false">"Standard deviation in points: higher values mean greater variation within the week. Calculated from the available daily values."</string>
+    <string name="ui_std_dev">"Std. dev. %1$s"</string>
+    <string name="ui_stress_factors" formatted="false">"Stress factors"</string>
+    <string name="ui_stress_index" formatted="false">"Stress index"</string>
+    <string name="ui_stress_statistics" formatted="false">"Stress statistics"</string>
+    <string name="ui_tap_a_day_to_edit_it" formatted="false">"Tap a day to edit it."</string>
+    <string name="ui_tap_at_the_bottom_right_to_photograph_your" formatted="false">"Tap + at the bottom right to photograph your weekly sheet. You can find a sample sheet to try in the menu."</string>
+    <string name="ui_tap_the_photo_to_enlarge_and_zoom" formatted="false">"Tap the photo to enlarge and zoom."</string>
+    <string name="ui_template_onepager_left_page" formatted="false">"Template: OnePager · left page"</string>
+    <string name="ui_the_onepager_template_is_aligned_using_printed_features" formatted="false">"The OnePager template is aligned using printed features and all four L-shaped marks. Dots inside the dashed boxes provide continuous values. The earlier BC-02 template is still supported."</string>
+    <string name="ui_try_it_out" formatted="false">"Try it out"</string>
+    <string name="ui_use_two_fingers_to_zoom_and_pan" formatted="false">"Use two fingers to zoom and pan."</string>
+    <string name="ui_values_for_will_be_deleted_the_scan_photo">"Values for %1$s will be deleted. The scan photo will be kept."</string>
+    <string name="ui_values_that_have_not_been_saved_will_be" formatted="false">"Values that have not been saved will be discarded."</string>
+    <string name="ui_version_1_2_1_personal_strain_dashboard" formatted="false">"Version 1.2.1 · Personal strain dashboard"</string>
+    <string name="ui_week_starting">"Week starting %1$s"</string>
+    <string name="ui_weekly_review_backup_zip">"Weekly-review-backup-%1$s.zip"</string>
+    <string name="ui_weekly_statistics" formatted="false">"Weekly statistics"</string>
+    <string name="ui_what_asks_a_lot_of_you_what_supports" formatted="false">"What asks a lot of you? What supports you?"</string>
+    <string name="ui_worksheet" formatted="false">"Worksheet"</string>
+    <string name="ui_would_you_like_to_export_your_values_and" formatted="false">"Would you like to export your values and scan photos as a ZIP file before deleting them?"</string>
+    <string name="ui_your_combined_index_of_demands_tension_energy_and" formatted="false">"Your combined index of demands, tension, energy, and room to act. Higher values mean higher calculated strain."</string>
+    <string name="ui_your_data" formatted="false">"Your data"</string>
+    <string name="ui_your_first_week" formatted="false">"Your first week"</string>
+    <string name="ui_your_scans" formatted="false">"Your scans"</string>
+    <string name="ui_your_timeline" formatted="false">"Your timeline"</string>
+    <string name="ui_zip_includes_values_and_photos_conflicts_are_shown" formatted="false">"ZIP includes values and photos. Conflicts are shown before import. Exports are unencrypted; choose a storage location deliberately."</string>
+    <string name="week_choose_a_week" formatted="false">"Choose a week"</string>
+    <string name="week_choose_the_current_week" formatted="false">"Choose the current week"</string>
+    <string name="week_next_week" formatted="false">"Next week"</string>
+    <string name="week_next_year" formatted="false">"Next year"</string>
+    <string name="week_previous_week" formatted="false">"Previous week"</string>
+    <string name="week_previous_year" formatted="false">"Previous year"</string>
+    <string name="week_week">"Week %1$s · %2$s"</string>
+</resources>

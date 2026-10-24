@@ -10,11 +10,12 @@ import androidx.compose.ui.unit.dp
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val trendDateFormat =
-    DateTimeFormatter.ofPattern("dd.MM.yyyy")
+private val trendDateFormat get() =
+    DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+        .withLocale(AppStrings.locale)
 
 private fun trendNumber(value: Double): String =
-    String.format(Locale.GERMANY, "%.1f", value)
+    String.format(AppStrings.locale, "%.1f", value)
 
 @Composable
 fun TrendCard(assessment: TrendAssessment) {
@@ -73,25 +74,25 @@ fun TrendCard(assessment: TrendAssessment) {
 
     val title = when {
         negativeCount >= 3 ->
-            "Zeit, gut auf dich zu achten"
+            tr(R.string.trend_time_to_take_good_care_of_yourself)
 
         negativeCount == 2 ->
-            "Zwei Entwicklungen im Blick"
+            tr(R.string.trend_two_developments_to_keep_an_eye_on)
 
         negativeCount == 1 ->
-            "Ein kleiner Hinweis für dich"
+            tr(R.string.trend_a_gentle_reminder_for_you)
 
         positiveCount == 1 ->
-            "Eine erfreuliche Entwicklung"
+            tr(R.string.trend_an_encouraging_development)
 
         positiveCount > 1 ->
-            "Erfreuliche Entwicklungen"
+            tr(R.string.trend_encouraging_developments)
 
         assessment.assessedMetrics == 0 ->
-            "Deine Trends brauchen noch etwas Zeit"
+            tr(R.string.trend_your_trends_need_a_little_more_time)
 
         else ->
-            "Deine Trends im Blick"
+            tr(R.string.trend_your_trends_at_a_glance)
     }
 
     Card(
@@ -120,15 +121,12 @@ fun TrendCard(assessment: TrendAssessment) {
 
             if (assessment.assessedMetrics == 0) {
                 Text(
-                    "Für eine Trendbewertung fehlen noch Daten. " +
-                            "Benötigt werden je Messgröße mindestens " +
-                            "vier Tageswerte in jeder der letzten drei " +
-                            "abgeschlossenen Wochen."
+                    tr(R.string.trend_there_is_not_enough_data_for_a_trend)
                 )
             } else {
                 if (negativeCount > 0) {
                     Text(
-                        text = "Ungünstige Entwicklungen: $negativeCount",
+                        text = tr(R.string.trend_unfavourable_developments, negativeCount),
                         style = MaterialTheme.typography.titleSmall
                     )
 
@@ -160,7 +158,7 @@ fun TrendCard(assessment: TrendAssessment) {
                                 Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text = "Das entwickelt sich günstig",
+                                text = tr(R.string.trend_things_moving_in_a_helpful_direction),
                                 style =
                                     MaterialTheme.typography.titleMedium
                             )
@@ -188,16 +186,11 @@ fun TrendCard(assessment: TrendAssessment) {
                     positiveCount == 0
                 ) {
                     Text(
-                        "Bei den auswertbaren Messgrößen zeigt sich " +
-                                "nach den festgelegten Regeln aktuell " +
-                                "kein ausgeprägter Trend."
+                        tr(R.string.trend_the_available_metrics_currently_show_no_pronounced_trend)
                     )
 
                     Text(
-                        "Auch ein Verlauf ohne klare Richtung darf " +
-                                "einfach so stehen bleiben. Vielleicht " +
-                                "möchtest du kurz wahrnehmen, was dich " +
-                                "im Alltag trägt und was dich fordert."
+                        tr(R.string.trend_a_pattern_without_a_clear_direction_can_simply)
                     )
                 }
 
@@ -206,19 +199,14 @@ fun TrendCard(assessment: TrendAssessment) {
                 ) {
                     Text(
                         text =
-                            "${assessment.assessedMetrics} von " +
-                                    "${metricNames.size} Messgrößen " +
-                                    "sind auswertbar. Für die übrigen " +
-                                    "fehlen ausreichend Tageswerte.",
+                            tr(R.string.trend_of_metrics_can_be_assessed_there_are_not, assessment.assessedMetrics, metricNames.size),
                         style =
                             MaterialTheme.typography.bodySmall
                     )
                 }
 
                 Text(
-                    text = "Bewertet werden Veränderungen über drei " +
-                            "abgeschlossene Wochen. Die Hinweise " +
-                            "beziehen sich auf deine erfassten Werte.",
+                    text = tr(R.string.trend_this_assessment_looks_at_changes_across_three_completed),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -233,17 +221,17 @@ private fun TrendDetails(
 ) {
     val title = if (positive) {
         when (trend.metricIndex) {
-            0 -> "Anforderungen gehen zurück"
-            1 -> "Anspannung nimmt ab"
-            2 -> "Energie nimmt zu"
-            else -> "Handlungsspielraum wächst"
+            0 -> tr(R.string.trend_demands_are_decreasing)
+            1 -> tr(R.string.trend_tension_is_easing)
+            2 -> tr(R.string.trend_energy_is_increasing)
+            else -> tr(R.string.trend_room_to_act_is_growing)
         }
     } else {
         when (trend.metricIndex) {
-            0 -> "Anforderungen steigen"
-            1 -> "Anspannung nimmt zu"
-            2 -> "Energie nimmt ab"
-            else -> "Handlungsspielraum wird kleiner"
+            0 -> tr(R.string.trend_demands_are_increasing)
+            1 -> tr(R.string.trend_tension_is_increasing)
+            2 -> tr(R.string.trend_energy_is_decreasing)
+            else -> tr(R.string.trend_room_to_act_is_shrinking)
         }
     }
 
@@ -256,7 +244,7 @@ private fun TrendDetails(
         )
 
         Text(
-            text = "Wochenmittel: " +
+            text = tr(R.string.trend_weekly_means) +
                     trend.weeklyMeans.joinToString(" → ") {
                         trendNumber(it)
                     },
@@ -270,41 +258,23 @@ private fun negativeTrendMessage(
 ): String {
     return when {
         trends.size >= 3 ->
-            "Mehrere Bereiche bewegen sich gerade in eine " +
-                    "belastendere Richtung. Du musst nicht alles " +
-                    "auf einmal lösen. Vielleicht ist jetzt ein guter " +
-                    "Moment, etwas kleiner zu planen, eine Grenze " +
-                    "zu setzen oder dir Unterstützung zu holen."
+            tr(R.string.trend_several_areas_are_moving_in_a_more_demanding)
 
         trends.size == 2 ->
-            "Zwei Bereiche verdienen gerade etwas Aufmerksamkeit. " +
-                    "Schau in Ruhe, was zusammenhängen könnte und " +
-                    "wo eine kleine Entlastung möglich wäre. " +
-                    "Ein überschaubarer Schritt genügt für den Anfang."
+            tr(R.string.trend_two_areas_could_use_a_little_attention_take)
 
         else -> when (trends.single().metricIndex) {
             0 ->
-                "Vielleicht lässt sich eine Aufgabe verkleinern, " +
-                        "verschieben oder gemeinsam tragen. " +
-                        "Du musst steigende Anforderungen nicht " +
-                        "automatisch allein auffangen."
+                tr(R.string.trend_perhaps_a_task_could_be_made_smaller_postponed)
 
             1 ->
-                "Vielleicht kannst du heute an einer kleinen " +
-                        "Stelle Druck herausnehmen. Eine Pause oder " +
-                        "eine klarere Grenze darf Platz haben."
+                tr(R.string.trend_perhaps_there_is_one_small_place_where_you)
 
             2 ->
-                "Deine Erholung darf mit auf dem Plan stehen. " +
-                        "Vielleicht lässt sich für die kommende Woche " +
-                        "etwas mehr Freiraum schaffen."
+                tr(R.string.trend_recovery_deserves_a_place_in_your_plans_perhaps)
 
             else ->
-                "Wenn der Spielraum kleiner wird, kann es helfen, " +
-                        "feste Vorgaben und eigene Möglichkeiten " +
-                        "auseinanderzuhalten. Vielleicht gibt es eine " +
-                        "kleine Entscheidung, die wieder bei dir " +
-                        "liegen darf."
+                tr(R.string.trend_when_your_room_to_act_shrinks_it_can)
         }
     }
 }
@@ -313,32 +283,21 @@ private fun positiveTrendMessage(
     trends: List<MetricTrend>
 ): String {
     if (trends.size > 1) {
-        return "Deine Einträge zeigen in mehreren Bereichen eine " +
-                "günstige Entwicklung. Das darfst du wahrnehmen und " +
-                "würdigen. Vielleicht möchtest du festhalten, " +
-                "was dir gerade guttut."
+        return tr(R.string.trend_your_entries_show_encouraging_changes_in_several_areas)
     }
 
     return when (trends.single().metricIndex) {
         0 ->
-            "Etwas weniger Anforderungen können Raum schaffen. " +
-                    "Schön, dass sich hier Entlastung abzeichnet. " +
-                    "Du darfst den frei werdenden Platz auch frei lassen."
+            tr(R.string.trend_fewer_demands_can_create_space_it_is_encouraging)
 
         1 ->
-            "Schön, dass deine Anspannung zurückgeht. " +
-                    "Vielleicht erkennst du etwas, das dir dabei " +
-                    "guttut und das du beibehalten möchtest."
+            tr(R.string.trend_it_is_good_to_see_your_tension_easing)
 
         2 ->
-            "Deine Energie nimmt zu – eine erfreuliche Entwicklung. " +
-                    "Du darfst dich darüber freuen, ohne sie gleich " +
-                    "wieder vollständig zu verplanen."
+            tr(R.string.trend_your_energy_is_increasing_an_encouraging_development_you)
 
         else ->
-            "Mehr Handlungsspielraum zeichnet sich ab. " +
-                    "Vielleicht möchtest du eine dieser Möglichkeiten " +
-                    "bewusst für dich nutzen."
+            tr(R.string.trend_more_room_to_act_is_emerging_perhaps_you)
     }
 }
 

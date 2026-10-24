@@ -1,7 +1,7 @@
 package de.jfd.straingauge
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,11 +50,11 @@ import java.util.Locale
 import kotlin.math.max
 import androidx.activity.enableEdgeToEdge
 
-private val german=DateTimeFormatter.ofPattern("dd.MM.yyyy",Locale.GERMANY)
+private val german get() =DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(AppStrings.locale)
 private fun displayDate(date:String)=runCatching{LocalDate.parse(date).format(german)}.getOrDefault(date)
-private fun number(v:Double?)=v?.let{String.format(Locale.GERMANY,"%.1f",it)} ?: "–"
-private fun factorsText(mask:Int,labels:List<String> = factorNames)=labels.filterIndexed{i,_->mask and (1 shl i)!=0}.joinToString(", ").ifEmpty{"keine"}
-class MainActivity:ComponentActivity(){
+private fun number(v:Double?)=v?.let{String.format(AppStrings.locale,"%.1f",it)} ?: "–"
+private fun factorsText(mask:Int,labels:List<String> = factorNames)=labels.filterIndexed{i,_->mask and (1 shl i)!=0}.joinToString(", ").ifEmpty{tr(R.string.ui_none)}
+class MainActivity:AppCompatActivity(){
     private val model:AppModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +79,7 @@ class MainActivity:ComponentActivity(){
 fun App(model:AppModel){
     val days by model.days.collectAsStateWithLifecycle()
     val scans by model.scans.collectAsStateWithLifecycle()
+    var showLanguageSettings by remember { mutableStateOf(false) }
     var discard by remember{mutableStateOf(false)}
     var photo by remember{mutableStateOf<File?>(null)}
     var edit by remember{mutableStateOf<DayEntry?>(null)}
@@ -92,12 +93,12 @@ fun App(model:AppModel){
     } else {
         Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
             TopAppBar(
-                title = { Text("My Nothing Box Strain Gauge", fontFamily = Garamond) },
+                title = { Text(tr(R.string.ui_my_nothing_box_strain_gauge), fontFamily = Garamond) },
                 navigationIcon = {
                     if (model.screen != Screen.DASHBOARD)
                         AppIconButton(
                             icon = Icons.AutoMirrored.Filled.KeyboardReturn,
-                            label = "Zurück",
+                            label = tr(R.string.action_back),
                             onClick = { goBack() },
                             enabled = !model.busy
                         )
@@ -113,16 +114,23 @@ fun App(model:AppModel){
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.PhotoLibrary,
-                                contentDescription = "Gespeicherte Scans öffnen"
+                                contentDescription = tr(R.string.ui_open_saved_scans)
                             )
                         }
+
+                        AppIconButton(
+                            icon = Icons.Filled.Language,
+                            label = tr(R.string.language_title),
+                            onClick = { showLanguageSettings = true },
+                            enabled = !model.busy
+                        )
 
                         IconButton(
                             onClick = { model.screen = Screen.SETTINGS }
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Menu,
-                                contentDescription = "Menü öffnen"
+                                contentDescription = tr(R.string.ui_open_menu)
                             )
                         }
                     }
@@ -132,7 +140,7 @@ fun App(model:AppModel){
                 onClick = { model.screen = Screen.CAMERA },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.semantics { contentDescription = "Wochenblatt scannen" }) {
+                modifier = Modifier.semantics { contentDescription = tr(R.string.camera_scan_weekly_sheet) }) {
                 Text(
                     "+",
                     style = MaterialTheme.typography.headlineLarge,
@@ -173,21 +181,17 @@ fun App(model:AppModel){
                     model.weekPendingDeletion = null
                 },
                 title = {
-                    Text("Woche löschen?")
+                    Text(tr(R.string.ui_delete_this_week))
                 },
                 text = {
                     Text(
-                        "${weekRangeLabel(selectedWeek)}\n\n" +
-                                "Alle Tageswerte dieser Woche werden gelöscht. " +
-                                "Zugehörige Scans werden ebenfalls gelöscht, " +
-                                "sofern keine anderen Tageswerte sie verwenden.\n\n" +
-                                "Eine Sicherung kannst du vorher im Menü exportieren."
+                        tr(R.string.ui_all_daily_entries_for_this_week_will_be, weekRangeLabel(selectedWeek))
                     )
                 },
                 confirmButton = {
                     AppIconButton(
                         icon = Icons.Filled.DeleteForever,
-                        label = "Woche endgültig löschen",
+                        label = tr(R.string.ui_permanently_delete_this_week),
                         onClick = {
                             model.deleteWeek(selectedWeek)
                         },
@@ -198,7 +202,7 @@ fun App(model:AppModel){
                 dismissButton = {
                     AppIconButton(
                         icon = Icons.Filled.Close,
-                        label = "Abbrechen",
+                        label = tr(R.string.action_cancel),
                         onClick = {
                             model.weekPendingDeletion = null
                         }
@@ -207,28 +211,44 @@ fun App(model:AppModel){
             )
         }
     }
-    model.message?.let{message -> AlertDialog(onDismissRequest={model.message=null},title={Text("Hinweis")},text={Text(message)},confirmButton={TextButton(onClick={model.message=null}){Text("OK")}})}
+    if (showLanguageSettings && model.screen == Screen.DASHBOARD) {
+        AlertDialog(
+            onDismissRequest = { showLanguageSettings = false },
+            icon = { Icon(Icons.Filled.Language, contentDescription = null) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    LanguageSettings(enabled = !model.busy)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageSettings = false }) {
+                    Text(tr(R.string.action_close))
+                }
+            }
+        )
+    }
+    model.message?.let{message -> AlertDialog(onDismissRequest={model.message=null},title={Text(tr(R.string.ui_notice))},text={Text(message)},confirmButton={TextButton(onClick={model.message=null}){Text(tr(R.string.action_ok))}})}
     if(model.busy)Dialog(onDismissRequest={},properties=DialogProperties(dismissOnBackPress=false,dismissOnClickOutside=false)){
         Surface(shape=RoundedCornerShape(20.dp)){Row(Modifier.padding(28.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(18.dp)){
-            CircularProgressIndicator();Text("Einen Moment …")
+            CircularProgressIndicator();Text(tr(R.string.ui_one_moment))
         }}
     }
-    if(discard)AlertDialog(onDismissRequest={discard=false},title={Text("Scan verwerfen?")},text={Text("Die noch nicht gespeicherten Werte werden verworfen.")},
-        confirmButton={TextButton(onClick={model.clearDraft();model.screen=Screen.DASHBOARD;discard=false}){Text("Verwerfen")}},
-        dismissButton={TextButton(onClick={discard=false}){Text("Weiter prüfen")}})
-    model.saveConflicts?.let{ dates -> ConflictDialog("Tage bereits vorhanden",dates.map{date ->
+    if(discard)AlertDialog(onDismissRequest={discard=false},title={Text(tr(R.string.ui_discard_scan))},text={Text(tr(R.string.ui_values_that_have_not_been_saved_will_be))},
+        confirmButton={TextButton(onClick={model.clearDraft();model.screen=Screen.DASHBOARD;discard=false}){Text(tr(R.string.ui_discard))}},
+        dismissButton={TextButton(onClick={discard=false}){Text(tr(R.string.ui_continue_reviewing))}})
+    model.saveConflicts?.let{ dates -> ConflictDialog(tr(R.string.ui_some_days_already_exist),dates.map{date ->
         val old=days.first{it.date==date}
         val index=(LocalDate.parse(date).toEpochDay()-LocalDate.parse(model.week).toEpochDay()).toInt()
-        "${displayDate(date)}\nBisher: ${old.values().joinToString(" / "){number(it)}}\nFaktoren: ${factorsText(old.factors,old.factorLabels())}\nScan: ${model.editedValues[index].joinToString(" / "){number(it)}}\nFaktoren: ${factorsText(model.editedFactors[index],model.customLabels())}"
+        tr(R.string.ui_existing_factors_scan_factors, displayDate(date), old.values().joinToString(" / "){number(it)}, factorsText(old.factors,old.factorLabels()), model.editedValues[index].joinToString(" / "){number(it)}, factorsText(model.editedFactors[index],model.customLabels()))
     },
         onCancel={model.saveConflicts=null},onKeep={model.saveDraft(false)},onReplace={model.saveDraft(true)}) }
     model.archive?.let{a ->
         val old=days.associateBy{it.date}
         val conflictText=a.days.filter{it.date in model.importConflicts}.map{n ->
             val o=old.getValue(n.date)
-            "${displayDate(n.date)}\nBisher: ${o.values().joinToString(" / "){number(it)}}\nFaktoren: ${factorsText(o.factors,o.factorLabels())}\nImport: ${n.values().joinToString(" / "){number(it)}}\nFaktoren: ${factorsText(n.factors,n.factorLabels())}"
+            tr(R.string.ui_existing_factors_import_factors, displayDate(n.date), o.values().joinToString(" / "){number(it)}, factorsText(o.factors,o.factorLabels()), n.values().joinToString(" / "){number(it)}, factorsText(n.factors,n.factorLabels()))
         }
-        ConflictDialog("Sicherung importieren",listOf("${a.days.size} Tage, ${a.scans.size} Scans.\n${a.days.count{it.date !in old}} neue Tage.\n${a.days.count{it.date in old}} Tage bereits vorhanden, davon ${model.importConflicts.size} mit abweichenden Werten.\nWerte: Anforderungen / Anspannung / Energie / Handlungsspielraum.")+conflictText,
+        ConflictDialog(tr(R.string.ui_import_backup),listOf(tr(R.string.ui_days_scans_new_days_days_already_exist_have, a.days.size, a.scans.size, a.days.count{it.date !in old}, a.days.count{it.date in old}, model.importConflicts.size))+conflictText,
             onCancel=model::cancelImport,onKeep={model.importArchive(false)},onReplace={model.importArchive(true)})
     }
     photo?.let{PhotoDialog(it,onClose={photo=null})}
@@ -268,21 +288,21 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         Spacer(Modifier.height(4.dp))
-        Text("Dein Verlauf",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
-        Text("Was fordert dich? Was trägt dich?",color=MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tr(R.string.ui_your_timeline),fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
+        Text(tr(R.string.ui_what_asks_a_lot_of_you_what_supports),color=MaterialTheme.colorScheme.onSurfaceVariant)
         TrendCard(trendAssessment)
         PeriodSelector(
             selectedPeriod = period,
             onPeriodSelected = { period = it }
         )
-        Text("${start.format(german)} – ${end.format(german)} · ${days.size} erfasste Tage",style=MaterialTheme.typography.labelMedium)
+        Text(tr(R.string.ui_recorded_days, start.format(german), end.format(german), days.size),style=MaterialTheme.typography.labelMedium)
         if(all.isEmpty()){
             Card(colors=CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             )){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-                Text("Deine erste Woche",style=MaterialTheme.typography.titleMedium)
-                Text("Tippe unten rechts auf +, um dein Wochenblatt zu fotografieren. Im Menü findest du ein Testblatt zum Ausprobieren.")
+                Text(tr(R.string.ui_your_first_week),style=MaterialTheme.typography.titleMedium)
+                Text(tr(R.string.ui_tap_at_the_bottom_right_to_photograph_your))
             }}
         }
         metricNames.forEachIndexed{m,name ->
@@ -294,11 +314,11 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                 Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
                         Text(name,style=MaterialTheme.typography.titleMedium,color=metricColors[m])
-                        Text(if(values.isEmpty())"Keine Werte" else "Ø ${number(values.average())}",style=MaterialTheme.typography.labelLarge)
+                        Text(if(values.isEmpty())tr(R.string.ui_no_values) else "Ø ${number(values.average())}",style=MaterialTheme.typography.labelLarge)
                     }
                     Plot(days,m,start,end,metricColors[m])
                     val latest=days.lastOrNull{it.values()[m]!=null}
-                    Text(if(latest==null)"Noch kein Messwert" else "Zuletzt ${number(latest.values()[m])} · ${displayDate(latest.date)}",style=MaterialTheme.typography.labelSmall)
+                    Text(if(latest==null)tr(R.string.ui_no_value_recorded_yet) else tr(R.string.ui_latest, number(latest.values()[m]), displayDate(latest.date)),style=MaterialTheme.typography.labelSmall)
                 }
             }
         }
@@ -308,7 +328,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Stress-Statistik",
+                text = tr(R.string.ui_stress_statistics),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium
             )
@@ -342,7 +362,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-                Text("Wochenstatistik",fontFamily=Garamond,style=MaterialTheme.typography.titleLarge)
+                Text(tr(R.string.ui_weekly_statistics),fontFamily=Garamond,style=MaterialTheme.typography.titleLarge)
                 WeekSelector(
                     selectedMonday = selectedWeek,
                     onWeekSelected = {
@@ -363,7 +383,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                     }
 
                     val standardDeviationText = standardDeviation?.let {
-                        String.format(Locale.GERMANY, "%.2f", it)
+                        String.format(AppStrings.locale, "%.2f", it)
                     } ?: "–"
 
                     Row(
@@ -377,7 +397,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                             Text(name)
 
                             Text(
-                                text = "${values.size} erfasste Tage",
+                                text = tr(R.string.ui_recorded_days_608dc4, values.size),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -391,16 +411,14 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                             )
 
                             Text(
-                                text = "Standardabw. $standardDeviationText",
+                                text = tr(R.string.ui_std_dev, standardDeviationText),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
                 }
                 Text(
-                    text = "Standardabweichung in Punkten: Größere Werte " +
-                            "bedeuten stärkere Schwankungen innerhalb der Woche. " +
-                            "Berechnet aus den vorhandenen Tageswerten.",
+                    text = tr(R.string.ui_standard_deviation_in_points_higher_values_mean_greater),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -411,7 +429,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             .eachCount()
 
         Text(
-            text = "Belastungsfaktoren",
+            text = tr(R.string.ui_stress_factors),
             fontFamily = Garamond,
             style = MaterialTheme.typography.titleLarge
         )
@@ -423,8 +441,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
 
         if (counts.isEmpty()) {
             Text(
-                text = "Im ausgewählten Zeitraum sind keine " +
-                        "Belastungsfaktoren erfasst.",
+                text = tr(R.string.ui_no_stress_factors_have_been_recorded_in_the),
                 style = MaterialTheme.typography.bodyMedium
             )
         } else {
@@ -440,7 +457,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                             modifier = Modifier.weight(1f)
                         )
 
-                        Text("$count Tage")
+                        Text(tr(R.string.ui_days, count))
                     }
                 }
         }
@@ -449,7 +466,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                 onClick = onOpenEntries,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Einträge bearbeiten")
+                Text(tr(R.string.ui_edit_entries))
             }
         }
         Spacer(Modifier.height(100.dp))
@@ -475,7 +492,7 @@ fun StressStatisticsCard(
     }
 
     val deviationText = standardDeviation?.let {
-        String.format(Locale.GERMANY, "%.2f", it)
+        String.format(AppStrings.locale, "%.2f", it)
     } ?: "–"
 
     val dark =
@@ -502,27 +519,23 @@ fun StressStatisticsCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Stressindex",
+                text = tr(R.string.ui_stress_index),
                 fontFamily = Garamond,
                 style = MaterialTheme.typography.titleLarge
             )
 
             Text(
-                text = "Dein kombinierter Index aus Anforderungen, " +
-                        "Anspannung, Energie und Handlungsspielraum. " +
-                        "Höher bedeutet höhere rechnerische Belastung.",
+                text = tr(R.string.ui_your_combined_index_of_demands_tension_energy_and),
                 style = MaterialTheme.typography.bodySmall
             )
 
             if (values.isEmpty()) {
                 Text(
-                    "Im ausgewählten Zeitraum gibt es noch keinen " +
-                            "Tag mit allen vier Angaben."
+                    tr(R.string.ui_no_day_in_the_selected_period_has_all)
                 )
             } else {
                 Text(
-                    text = "Ø ${number(mean)}" +
-                            " · Standardabw. $deviationText",
+                    text = tr(R.string.ui_mean_std_dev, number(mean), deviationText),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -537,17 +550,13 @@ fun StressStatisticsCard(
                 )
 
                 Text(
-                    text = "${values.size} von ${days.size} " +
-                            "erfassten Tagen mit vollständigen Angaben.",
+                    text = tr(R.string.ui_of_recorded_days_have_complete_values, values.size, days.size),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
             Text(
-                text = "Berechnung: " +
-                        "(Anforderungen + Anspannung + " +
-                        "(10 − Energie) + " +
-                        "(10 − Handlungsspielraum)) / 4",
+                text = tr(R.string.ui_calculation_demands_tension_10_energy_10_room_to),
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -564,9 +573,9 @@ fun PeriodSelector(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         listOf(
-            28 to "4 Wochen",
-            90 to "3 Monate",
-            0 to "Alles"
+            28 to tr(R.string.ui_4_weeks),
+            90 to tr(R.string.ui_3_months),
+            0 to tr(R.string.ui_all)
         ).forEach { (value, label) ->
             FilterChip(
                 selected = selectedPeriod == value,
@@ -608,7 +617,7 @@ fun EntriesScreen(
     ) {
         item {
             Text(
-                text = "Einträge bearbeiten",
+                text = tr(R.string.ui_edit_entries),
                 fontFamily = Garamond,
                 style = MaterialTheme.typography.headlineLarge
             )
@@ -629,13 +638,13 @@ fun EntriesScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${weekDays.size} erfasste Tage",
+                    text = tr(R.string.ui_recorded_days_608dc4, weekDays.size),
                     modifier = Modifier.weight(1f)
                 )
 
                 AppIconButton(
                     icon = Icons.Filled.DeleteOutline,
-                    label = "Ausgewählte Woche löschen",
+                    label = tr(R.string.ui_delete_selected_week),
                     onClick = {
                         onDeleteWeek(selectedWeek)
                     },
@@ -646,20 +655,19 @@ fun EntriesScreen(
 
         if (weekDays.isEmpty()) {
             item {
-                Text("Für diese Woche sind keine Tageswerte vorhanden.")
+                Text(tr(R.string.ui_no_daily_entries_have_been_recorded_for_this))
             }
         } else {
             item {
                 Text(
-                    text = "Tag zum Bearbeiten antippen.",
+                    text = tr(R.string.ui_tap_a_day_to_edit_it),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             item {
                 Text(
-                    text = "Anforderungen / Anspannung / " +
-                            "Energie / Handlungsspielraum",
+                    text = tr(R.string.ui_demands_tension_energy_room_to_act),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -683,7 +691,7 @@ fun EntriesScreen(
                         text = LocalDate.parse(day.date).format(
                             DateTimeFormatter.ofPattern(
                                 "EEEE, dd.MM.yyyy",
-                                Locale.GERMANY
+                                AppStrings.locale
                             )
                         ),
                         fontWeight = FontWeight.Bold
@@ -721,8 +729,8 @@ fun ValuePlot(days:List<DayEntry>,start:LocalDate,end:LocalDate,color:Color,valu
         }
     }
     Row(Modifier.fillMaxWidth().padding(start=24.dp),horizontalArrangement=Arrangement.SpaceBetween){
-        Text(start.format(DateTimeFormatter.ofPattern("dd.MM.")),style=MaterialTheme.typography.labelSmall)
-        Text(end.format(DateTimeFormatter.ofPattern("dd.MM.")),style=MaterialTheme.typography.labelSmall)
+        Text(start.format(DateTimeFormatter.ofPattern(if (AppStrings.locale.language == "de") "dd.MM." else "MM/dd")),style=MaterialTheme.typography.labelSmall)
+        Text(end.format(DateTimeFormatter.ofPattern(if (AppStrings.locale.language == "de") "dd.MM." else "MM/dd")),style=MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -746,24 +754,28 @@ fun Review(model:AppModel,onPhoto:(File)->Unit){
     var original by rememberSaveable{mutableStateOf(false)}
     var showWarnings by remember{mutableStateOf(false)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-        Text("Erkennen. Prüfen. Übernehmen.",fontFamily=Garamond,style=MaterialTheme.typography.headlineSmall)
-        Text(if(scan.templateId=="MNB-01/left")"OnePager · Linke Seite · Punktpositionen 0–10. Grün: erkannt; Orange: mehrdeutig. Werte bitte prüfen." else "BC-02 / Seite 1 · Kreismarkierungen 0–10. Werte bitte prüfen.")
+        Text(tr(R.string.ui_recognise_review_save),fontFamily=Garamond,style=MaterialTheme.typography.headlineSmall)
+        Text(if(scan.templateId=="MNB-01/left")tr(R.string.ui_onepager_left_page_dot_positions_0_10_green) else tr(R.string.ui_bc_02_page_1_circle_marks_0_10))
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-            FilterChip(selected=!original,onClick={original=false},label={Text("Erkennung")})
-            FilterChip(selected=original,onClick={original=true},label={Text("Original")})
+            FilterChip(selected=!original,onClick={original=false},label={Text(tr(R.string.ui_recognition))})
+            FilterChip(selected=original,onClick={original=true},label={Text(tr(R.string.ui_original))})
         }
         val file=if(original)scan.original else scan.overlay
         LocalPhoto(file,Modifier.fillMaxWidth().height(230.dp).clickable{onPhoto(file)})
-        Text("Foto antippen zum Vergrößern und Zoomen.",style=MaterialTheme.typography.labelSmall)
-        if(scan.warnings.isNotEmpty()){
-            WeekSelector(
-                selectedMonday = LocalDate.parse(model.week),
-                onWeekSelected = {
-                    model.changeWeek(it.toString())
-                },
-                enabled = !model.busy
+        Text(tr(R.string.ui_tap_the_photo_to_enlarge_and_zoom),style=MaterialTheme.typography.labelSmall)
+        if (scan.warnings.isNotEmpty()) {
+            AppIconButton(
+                icon = Icons.Filled.Info,
+                label = tr(R.string.scan_warnings_toggle, scan.warnings.size),
+                onClick = { showWarnings = !showWarnings }
             )
-            if(showWarnings)scan.warnings.forEach{Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)}
+            if (showWarnings) scan.warnings.forEach {
+                Text(
+                    DiagnosticLocalizer.display(it),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
         WeekSelector(
             selectedMonday = LocalDate.parse(model.week),
@@ -775,16 +787,16 @@ fun Review(model:AppModel,onPhoto:(File)->Unit){
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
             dayLabels.forEachIndexed{d,label -> FilterChip(selected=selected==d,onClick={selected=d},label={Text(label)})}
         }
-        Text("${dayLabels[selected]} · Werte kontrollieren",style=MaterialTheme.typography.titleMedium)
-        Text("Leere Felder bleiben fehlende Werte. Manuelle Korrekturen sind auch in 0,1-Schritten möglich.",style=MaterialTheme.typography.bodySmall)
+        Text(tr(R.string.ui_review_values, dayLabels[selected]),style=MaterialTheme.typography.titleMedium)
+        Text(tr(R.string.ui_empty_fields_remain_missing_values_manual_corrections_can),style=MaterialTheme.typography.bodySmall)
         metricNames.forEachIndexed{m,name -> MetricEditor(name,model.editedValues[selected][m],{model.setValue(selected,m,it)})}
-        Text("Belastungsfaktoren",style=MaterialTheme.typography.titleMedium)
-        OutlinedTextField(value=model.editedCustom1,onValueChange={model.editedCustom1=it.take(120)},label={Text("Name Zusatzfaktor 1 (für diese Woche)")},singleLine=true,modifier=Modifier.fillMaxWidth())
-        OutlinedTextField(value=model.editedCustom2,onValueChange={model.editedCustom2=it.take(120)},label={Text("Name Zusatzfaktor 2 (für diese Woche)")},singleLine=true,modifier=Modifier.fillMaxWidth())
-        Text("Handschriftliche Namen werden nicht gelesen. Bei markierten Zusatzzeilen bitte einen Namen eintragen.",style=MaterialTheme.typography.bodySmall)
+        Text(tr(R.string.ui_stress_factors),style=MaterialTheme.typography.titleMedium)
+        OutlinedTextField(value=model.editedCustom1,onValueChange={model.editedCustom1=it.take(120)},label={Text(tr(R.string.ui_name_of_extra_factor_1_for_this_week))},singleLine=true,modifier=Modifier.fillMaxWidth())
+        OutlinedTextField(value=model.editedCustom2,onValueChange={model.editedCustom2=it.take(120)},label={Text(tr(R.string.ui_name_of_extra_factor_2_for_this_week))},singleLine=true,modifier=Modifier.fillMaxWidth())
+        Text(tr(R.string.ui_handwritten_names_are_not_read_please_enter_a),style=MaterialTheme.typography.bodySmall)
         FactorEditor(model.editedFactors[selected],model.customLabels()){model.setFactor(selected,it)}
-        Button(onClick={model.saveDraft()},enabled=!model.busy,modifier=Modifier.fillMaxWidth()){Text("Woche speichern")}
-        Text("Es werden nur Tage mit mindestens einem Wert oder Belastungsfaktor übernommen.",style=MaterialTheme.typography.bodySmall)
+        Button(onClick={model.saveDraft()},enabled=!model.busy,modifier=Modifier.fillMaxWidth()){Text(tr(R.string.ui_save_week))}
+        Text(tr(R.string.ui_only_days_with_at_least_one_value_or),style=MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -804,7 +816,7 @@ fun FactorEditor(mask:Int,labels:List<String> = factorNames,onToggle:(Int)->Unit
     labels.forEachIndexed{f,label -> Row(verticalAlignment=Alignment.CenterVertically,modifier=Modifier.fillMaxWidth().clickable{onToggle(f)}){
         Checkbox(checked=mask and (1 shl f)!=0,onCheckedChange={onToggle(f)});Text(label,style=MaterialTheme.typography.bodyMedium)
     }}
-    if(Integer.bitCount(mask)>3)Text("Mehr als drei Faktoren ausgewählt – bitte prüfen.",color=MaterialTheme.colorScheme.error)
+    if(Integer.bitCount(mask)>3)Text(tr(R.string.ui_more_than_three_factors_selected_please_check),color=MaterialTheme.colorScheme.error)
 }
 
 @Composable
@@ -823,24 +835,23 @@ fun Settings(model:AppModel){
         }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        Text("Deine Daten",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
-        Text("Verarbeitung und Speicherung erfolgen auf diesem Smartphone. Die App benötigt keinen Internetzugang und erstellt keine automatische Cloud-Sicherung.")
-        Button(onClick={exportZip.launch("Wochenblick-${LocalDate.now()}.zip")},modifier=Modifier.fillMaxWidth()){Text("Vollständige Sicherung exportieren")}
-        OutlinedButton(onClick={importZip.launch(arrayOf("application/zip","application/octet-stream"))},modifier=Modifier.fillMaxWidth()){Text("Sicherung importieren")}
-        Text("ZIP enthält Werte und Fotos. Vor dem Import werden Konflikte angezeigt. Exporte sind unverschlüsselt; wähle bewusst einen Speicherort.",style=MaterialTheme.typography.bodySmall)
+        Text(tr(R.string.ui_your_data),fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
+        Text(tr(R.string.ui_processing_and_storage_take_place_on_this_phone))
+        Button(onClick={exportZip.launch("Wochenblick-${LocalDate.now()}.zip")},modifier=Modifier.fillMaxWidth()){Text(tr(R.string.ui_export_full_backup))}
+        OutlinedButton(onClick={importZip.launch(arrayOf("application/zip","application/octet-stream"))},modifier=Modifier.fillMaxWidth()){Text(tr(R.string.ui_import_backup))}
+        Text(tr(R.string.ui_zip_includes_values_and_photos_conflicts_are_shown),style=MaterialTheme.typography.bodySmall)
         HorizontalDivider()
-        OutlinedButton(onClick={exportCsv.launch("Wochenblick-${LocalDate.now()}.csv")},modifier=Modifier.fillMaxWidth()){Text("Messwerte als CSV exportieren")}
-        Text("Für Python und Excel: UTF-8, Semikolon, Dezimalpunkt. CSV ist ein Analyseexport; die Wiederherstellung erfolgt über ZIP.",style=MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick={exportCsv.launch("Wochenblick-${LocalDate.now()}.csv")},modifier=Modifier.fillMaxWidth()){Text(tr(R.string.ui_export_values_as_csv))}
+        Text(tr(R.string.ui_for_python_and_excel_utf_8_semicolon_separated),style=MaterialTheme.typography.bodySmall)
         HorizontalDivider()
 
         Text(
-            text = "Daten löschen",
+            text = tr(R.string.ui_delete_data),
             style = MaterialTheme.typography.titleLarge
         )
 
         Text(
-            text = "Entfernt alle Messwerte und gespeicherten Scan-Fotos " +
-                    "aus dieser App.",
+            text = tr(R.string.ui_removes_all_values_and_saved_scan_photos_from),
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -854,7 +865,7 @@ fun Settings(model:AppModel){
                 contentColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Text("Alle Daten löschen")
+            Text(tr(R.string.ui_delete_all_data))
         }
 
         HorizontalDivider()
@@ -862,12 +873,12 @@ fun Settings(model:AppModel){
         ReminderSettings()
 
         HorizontalDivider()
-        Text("Ausprobieren",style=MaterialTheme.typography.titleLarge)
-        OutlinedButton(onClick=model::testScan,modifier=Modifier.fillMaxWidth()){Text("Künstliches Testblatt auswerten")}
-        Text("Öffnet ein künstlich ausgefülltes Blatt in der Scan-Prüfung. Erst Speichern übernimmt die Testwerte.",style=MaterialTheme.typography.bodySmall)
-        Text("Vorlage: OnePager · linke Seite",style=MaterialTheme.typography.titleMedium)
-        Text("Die neue OnePager-Vorlage wird anhand gedruckter Merkmale und aller vier L-Marken ausgerichtet. Die Punkte in den gestrichelten Kästchen liefern kontinuierliche Werte. Die frühere BC-02-Vorlage wird weiterhin erkannt.")
-        Text("Version 1.2.1 · Persönliches Belastungs-Cockpit",style=MaterialTheme.typography.labelSmall)
+        Text(tr(R.string.ui_try_it_out),style=MaterialTheme.typography.titleLarge)
+        OutlinedButton(onClick=model::testScan,modifier=Modifier.fillMaxWidth()){Text(tr(R.string.ui_analyse_sample_sheet))}
+        Text(tr(R.string.ui_opens_a_synthetically_filled_sheet_for_review_sample),style=MaterialTheme.typography.bodySmall)
+        Text(tr(R.string.ui_template_onepager_left_page),style=MaterialTheme.typography.titleMedium)
+        Text(tr(R.string.ui_the_onepager_template_is_aligned_using_printed_features))
+        Text(tr(R.string.ui_version_1_2_1_personal_strain_dashboard),style=MaterialTheme.typography.labelSmall)
     }
     if (model.showDeleteOptions) {
         AlertDialog(
@@ -875,12 +886,11 @@ fun Settings(model:AppModel){
                 model.showDeleteOptions = false
             },
             title = {
-                Text("Vorher eine Sicherung erstellen?")
+                Text(tr(R.string.ui_create_a_backup_first))
             },
             text = {
                 Text(
-                    "Möchtest du deine Messwerte und Scan-Fotos " +
-                            "vor dem Löschen als ZIP-Datei exportieren?"
+                    tr(R.string.ui_would_you_like_to_export_your_values_and)
                 )
             },
             confirmButton = {
@@ -893,13 +903,13 @@ fun Settings(model:AppModel){
                             model.showDeleteOptions = false
 
                             exportBeforeDelete.launch(
-                                "Wochenblick-Sicherung-${LocalDate.now()}.zip"
+                                tr(R.string.ui_weekly_review_backup_zip, LocalDate.now())
                             )
                         },
                         enabled = !model.busy,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Sicherung exportieren")
+                        Text(tr(R.string.ui_export_backup))
                     }
 
                     TextButton(
@@ -910,7 +920,7 @@ fun Settings(model:AppModel){
                         enabled = !model.busy,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Ohne Export fortfahren")
+                        Text(tr(R.string.ui_continue_without_export))
                     }
 
                     TextButton(
@@ -919,7 +929,7 @@ fun Settings(model:AppModel){
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Abbrechen")
+                        Text(tr(R.string.action_cancel))
                     }
                 }
             }
@@ -932,14 +942,11 @@ fun Settings(model:AppModel){
                 model.showDeleteConfirmation = false
             },
             title = {
-                Text("Alle Daten wirklich löschen?")
+                Text(tr(R.string.ui_really_delete_all_data))
             },
             text = {
                 Text(
-                    "Alle Messwerte und gespeicherten Scan-Fotos " +
-                            "werden aus dieser App gelöscht. " +
-                            "Das kann nur durch den Import einer vorhandenen " +
-                            "ZIP-Sicherung rückgängig gemacht werden."
+                    tr(R.string.ui_all_values_and_saved_scan_photos_will_be)
                 )
             },
             confirmButton = {
@@ -952,7 +959,7 @@ fun Settings(model:AppModel){
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Alles löschen")
+                    Text(tr(R.string.ui_delete_everything))
                 }
             },
             dismissButton = {
@@ -961,7 +968,7 @@ fun Settings(model:AppModel){
                         model.showDeleteConfirmation = false
                     }
                 ) {
-                    Text("Abbrechen")
+                    Text(tr(R.string.action_cancel))
                 }
             }
         )
@@ -973,32 +980,32 @@ fun History(scans:List<ScanEntry>,model:AppModel,onPhoto:(File)->Unit){
     val context=LocalContext.current
     var deleting by remember{mutableStateOf<ScanEntry?>(null)}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-        Text("Deine Scans",fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
-        if(scans.isEmpty())Text("Noch keine Scans gespeichert.")
+        Text(tr(R.string.ui_your_scans),fontFamily=Garamond,style=MaterialTheme.typography.headlineLarge)
+        if(scans.isEmpty())Text(tr(R.string.ui_no_scans_saved_yet))
         scans.forEach{s -> Card(colors=CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface
         )){
             Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-                Text("Woche ab ${displayDate(s.weekStart)}",style=MaterialTheme.typography.titleMedium)
+                Text(tr(R.string.ui_week_starting, displayDate(s.weekStart)),style=MaterialTheme.typography.titleMedium)
                 Text(s.template,style=MaterialTheme.typography.labelSmall)
                 if(s.diagnostics!="[]"){
-                    val notes=remember(s.diagnostics){runCatching{
+                    val notes=remember(s.diagnostics, AppStrings.locale){runCatching{
                         val array=org.json.JSONArray(s.diagnostics)
-                        (0 until array.length()).joinToString("\n"){array.getString(it)}
-                    }.getOrDefault("Erkennungshinweise konnten nicht gelesen werden.")}
-                    Text("Hinweise bei der Aufnahme:\n$notes",style=MaterialTheme.typography.bodySmall)
+                        (0 until array.length()).joinToString("\n"){DiagnosticLocalizer.display(array.getString(it))}
+                    }.getOrDefault(tr(R.string.ui_recognition_notes_could_not_be_read))}
+                    Text(tr(R.string.ui_notes_from_this_scan, notes),style=MaterialTheme.typography.bodySmall)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){
-                    TextButton(onClick={onPhoto(File(context.filesDir,"scans/${s.original}"))}){Text("Original")}
-                    TextButton(onClick={onPhoto(File(context.filesDir,"scans/${s.aligned}"))}){Text("Entzerrt")}
-                    TextButton(onClick={deleting=s}){Text("Löschen")}
+                    TextButton(onClick={onPhoto(File(context.filesDir,"scans/${s.original}"))}){Text(tr(R.string.ui_original))}
+                    TextButton(onClick={onPhoto(File(context.filesDir,"scans/${s.aligned}"))}){Text(tr(R.string.ui_aligned))}
+                    TextButton(onClick={deleting=s}){Text(tr(R.string.action_delete))}
                 }
             }
         }}
     }
-    deleting?.let{s -> AlertDialog(onDismissRequest={deleting=null},title={Text("Scan löschen?")},text={Text("Die beiden Fotos werden gelöscht. Bereits erfasste Tageswerte bleiben erhalten.")},
-        confirmButton={TextButton(onClick={model.deleteScan(s);deleting=null}){Text("Löschen")}},dismissButton={TextButton(onClick={deleting=null}){Text("Abbrechen")}})}
+    deleting?.let{s -> AlertDialog(onDismissRequest={deleting=null},title={Text(tr(R.string.ui_delete_scan))},text={Text(tr(R.string.ui_both_photos_will_be_deleted_daily_values_already))},
+        confirmButton={TextButton(onClick={model.deleteScan(s);deleting=null}){Text(tr(R.string.action_delete))}},dismissButton={TextButton(onClick={deleting=null}){Text(tr(R.string.action_cancel))}})}
 }
 
 @Composable
@@ -1006,10 +1013,10 @@ fun ConflictDialog(title:String,lines:List<String>,onCancel:()->Unit,onKeep:()->
     var replace by remember{mutableStateOf(false)}
     AlertDialog(onDismissRequest=onCancel,title={Text(title)},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)){
         lines.forEach{Text(it,style=MaterialTheme.typography.bodySmall)}
-        Text("Neue Tage werden ergänzt. Für bereits vorhandene Tage gilt:")
-        Row(verticalAlignment=Alignment.CenterVertically){Checkbox(checked=replace,onCheckedChange={replace=it});Text("Vorhandene Tage durch eingehende Werte ersetzen")}
-        if(!replace)Text("Vorhandene Tage bleiben unverändert.")
-    }},confirmButton={TextButton(onClick={if(replace)onReplace() else onKeep()}){Text("Übernehmen")}},dismissButton={TextButton(onClick=onCancel){Text("Abbrechen")}})
+        Text(tr(R.string.ui_new_days_will_be_added_for_days_that))
+        Row(verticalAlignment=Alignment.CenterVertically){Checkbox(checked=replace,onCheckedChange={replace=it});Text(tr(R.string.ui_replace_existing_days_with_incoming_values))}
+        if(!replace)Text(tr(R.string.ui_existing_days_will_be_kept_unchanged))
+    }},confirmButton={TextButton(onClick={if(replace)onReplace() else onKeep()}){Text(tr(R.string.ui_apply))}},dismissButton={TextButton(onClick=onCancel){Text(tr(R.string.action_cancel))}})
 }
 
 @Composable
@@ -1019,15 +1026,15 @@ fun DayEditor(day:DayEntry,onDismiss:()->Unit,onSave:(DayEntry)->Unit,onDelete:(
     var custom1 by remember(day){mutableStateOf(day.custom1)}
     var custom2 by remember(day){mutableStateOf(day.custom2)}
     var delete by remember{mutableStateOf(false)}
-    if(delete){AlertDialog(onDismissRequest={delete=false},title={Text("Tag löschen?")},text={Text("Die Werte vom ${displayDate(day.date)} werden gelöscht. Das Scan-Foto bleibt erhalten.")},
-        confirmButton={TextButton(onClick=onDelete){Text("Löschen")}},dismissButton={TextButton(onClick={delete=false}){Text("Abbrechen")}});return}
+    if(delete){AlertDialog(onDismissRequest={delete=false},title={Text(tr(R.string.ui_delete_day))},text={Text(tr(R.string.ui_values_for_will_be_deleted_the_scan_photo, displayDate(day.date)))},
+        confirmButton={TextButton(onClick=onDelete){Text(tr(R.string.action_delete))}},dismissButton={TextButton(onClick={delete=false}){Text(tr(R.string.action_cancel))}});return}
     AlertDialog(onDismissRequest=onDismiss,title={Text(displayDate(day.date))},text={Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState())){
         metricNames.forEachIndexed{m,name -> MetricEditor(name,values[m]){v->values=values.mapIndexed{i,old->if(i==m)v else old}}}
-        OutlinedTextField(value=custom1,onValueChange={custom1=it.take(120)},label={Text("Zusatzfaktor 1 für diesen Eintrag")},isError=factors and 256!=0 && custom1.isBlank(),singleLine=true)
-        OutlinedTextField(value=custom2,onValueChange={custom2=it.take(120)},label={Text("Zusatzfaktor 2 für diesen Eintrag")},isError=factors and 512!=0 && custom2.isBlank(),singleLine=true)
+        OutlinedTextField(value=custom1,onValueChange={custom1=it.take(120)},label={Text(tr(R.string.ui_extra_factor_1_for_this_entry))},isError=factors and 256!=0 && custom1.isBlank(),singleLine=true)
+        OutlinedTextField(value=custom2,onValueChange={custom2=it.take(120)},label={Text(tr(R.string.ui_extra_factor_2_for_this_entry))},isError=factors and 512!=0 && custom2.isBlank(),singleLine=true)
         FactorEditor(factors,factorNames.take(8)+listOf(custom1.ifBlank{factorNames[8]},custom2.ifBlank{factorNames[9]})){f->factors=factors xor (1 shl f)}
-        TextButton(onClick={delete=true}){Text("Tag löschen")}
-    }},confirmButton={TextButton(enabled=(factors and 256==0 || custom1.isNotBlank()) && (factors and 512==0 || custom2.isNotBlank()),onClick={onSave(day.copy(demands=values[0],tension=values[1],energy=values[2],agency=values[3],factors=factors,custom1=custom1.trim(),custom2=custom2.trim()))}){Text("Speichern")}},dismissButton={TextButton(onClick=onDismiss){Text("Abbrechen")}})
+        TextButton(onClick={delete=true}){Text(tr(R.string.ui_delete_day_c8db52))}
+    }},confirmButton={TextButton(enabled=(factors and 256==0 || custom1.isNotBlank()) && (factors and 512==0 || custom2.isNotBlank()),onClick={onSave(day.copy(demands=values[0],tension=values[1],energy=values[2],agency=values[3],factors=factors,custom1=custom1.trim(),custom2=custom2.trim()))}){Text(tr(R.string.action_save))}},dismissButton={TextButton(onClick=onDismiss){Text(tr(R.string.action_cancel))}})
 }
 
 @Composable
@@ -1037,7 +1044,7 @@ fun LocalPhoto(file:File,modifier:Modifier=Modifier){
         value=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO){runCatching{loadOriented(file)}.getOrNull()}
         failed=value==null
     }
-    bitmap?.let{Image(it.asImageBitmap(),contentDescription="Arbeitsblatt",modifier=modifier,contentScale=ContentScale.Fit)} ?: Box(modifier,contentAlignment=Alignment.Center){Text(if(failed)"Foto konnte nicht geladen werden." else "Bild wird geladen …")}
+    bitmap?.let{Image(it.asImageBitmap(),contentDescription=tr(R.string.ui_worksheet),modifier=modifier,contentScale=ContentScale.Fit)} ?: Box(modifier,contentAlignment=Alignment.Center){Text(if(failed)tr(R.string.ui_could_not_load_the_photo) else tr(R.string.ui_loading_image))}
 }
 @Composable
 fun PhotoDialog(file:File,onClose:()->Unit){
@@ -1046,15 +1053,15 @@ fun PhotoDialog(file:File,onClose:()->Unit){
     Dialog(onDismissRequest=onClose,properties=DialogProperties(usePlatformDefaultWidth=false)){
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp)){
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
-                TextButton(onClick={zoom=1f;offset=Offset.Zero}){Text("Zurücksetzen")}
-                TextButton(onClick=onClose){Text("Schließen")}
+                TextButton(onClick={zoom=1f;offset=Offset.Zero}){Text(tr(R.string.ui_reset_view))}
+                TextButton(onClick=onClose){Text(tr(R.string.action_close))}
             }
             Box(Modifier.weight(1f).fillMaxWidth().pointerInput(Unit){detectTransformGestures{_,pan,scale,_->
                 zoom=(zoom*scale).coerceIn(1f,6f);offset=if(zoom<=1f)Offset.Zero else offset+pan
             }},contentAlignment=Alignment.Center){
                 LocalPhoto(file,Modifier.fillMaxSize().graphicsLayer{scaleX=zoom;scaleY=zoom;translationX=offset.x;translationY=offset.y})
             }
-            Text("Mit zwei Fingern zoomen und verschieben.",style=MaterialTheme.typography.labelSmall)
+            Text(tr(R.string.ui_use_two_fingers_to_zoom_and_pan),style=MaterialTheme.typography.labelSmall)
         }
     }
 }

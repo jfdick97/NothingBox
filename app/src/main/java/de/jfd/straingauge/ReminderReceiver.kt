@@ -62,7 +62,7 @@ class ReminderReceiver : BroadcastReceiver() {
         } catch (exception: Exception) {
             Log.e(
                 "WeeklyReminder",
-                "Prüfung konnte nicht gestartet werden.",
+                tr(R.string.reminder_could_not_start_the_reminder_check),
                 exception
             )
             pendingResult.finish()
@@ -79,7 +79,7 @@ class ReminderReceiver : BroadcastReceiver() {
             } catch (exception: Exception) {
                 Log.e(
                     "WeeklyReminder",
-                    "Erinnerungsprüfung fehlgeschlagen.",
+                    tr(R.string.reminder_reminder_check_failed),
                     exception
                 )
             } finally {

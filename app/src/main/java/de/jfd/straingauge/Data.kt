@@ -7,10 +7,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
-val metricNames = listOf("Anforderungen", "Anspannung", "Energie", "Handlungsspielraum")
-val factorNames = listOf("Arbeitsmenge / Zeitdruck", "Viele parallele Aufgaben", "Unklarheit / offene Fragen",
-    "Eigene Ansprüche / Erwartungen", "Unterbrechungen / Erreichbarkeit", "Konflikte / emotionale Belastung",
-    "Private Pflichten / Termine", "Wenig Schlaf / fehlende Erholung", "Zusatzfaktor 1", "Zusatzfaktor 2")
+val metricNames: List<String> get() = listOf(tr(R.string.metric_demands), tr(R.string.metric_tension), tr(R.string.metric_energy), tr(R.string.metric_agency))
+val factorNames: List<String> get() = listOf(tr(R.string.data_workload_time_pressure), tr(R.string.data_too_many_tasks_at_once), tr(R.string.data_uncertainty_unanswered_questions),
+    tr(R.string.data_my_own_standards_expectations), tr(R.string.data_interruptions_being_available), tr(R.string.data_conflict_emotional_strain),
+    tr(R.string.data_personal_responsibilities_commitments), tr(R.string.data_too_little_sleep_insufficient_recovery), tr(R.string.data_extra_factor_1), tr(R.string.data_extra_factor_2))
 
 @Entity(tableName = "days")
 data class DayEntry(
@@ -28,12 +28,12 @@ data class DayEntry(
     fun factorLabels() = factorNames.take(8) + listOf(custom1.ifBlank{factorNames[8]},custom2.ifBlank{factorNames[9]})
     fun selectedFactors() = factorLabels().filterIndexed{i,_-> factors and (1 shl i)!=0}
     fun validate() {
-        require(LocalDate.parse(date).toString() == date) { "Ungültiges Datum: $date" }
-        require(values().all { it == null || (it.isFinite() && it in 0.0..10.0) }) { "Skalenwert außerhalb 0–10" }
-        require(factors in 0..1023) { "Ungültige Belastungsfaktoren" }
-        require(custom1.length<=120 && custom2.length<=120) { "Zusatznamen dürfen höchstens 120 Zeichen lang sein." }
-        require(factors and 256 == 0 || custom1.isNotBlank()) { "Bitte einen Namen für Zusatzfaktor 1 eintragen." }
-        require(factors and 512 == 0 || custom2.isNotBlank()) { "Bitte einen Namen für Zusatzfaktor 2 eintragen." }
+        require(LocalDate.parse(date).toString() == date) { tr(R.string.data_invalid_date, date) }
+        require(values().all { it == null || (it.isFinite() && it in 0.0..10.0) }) { tr(R.string.data_scale_value_is_outside_0_10) }
+        require(factors in 0..1023) { tr(R.string.data_invalid_stress_factors) }
+        require(custom1.length<=120 && custom2.length<=120) { tr(R.string.data_extra_factor_names_must_not_exceed_120_characters) }
+        require(factors and 256 == 0 || custom1.isNotBlank()) { tr(R.string.data_please_enter_a_name_for_extra_factor_1) }
+        require(factors and 512 == 0 || custom2.isNotBlank()) { tr(R.string.data_please_enter_a_name_for_extra_factor_2) }
     }
 }
 @Entity(tableName = "scans")
@@ -62,7 +62,7 @@ interface Store {
         start: String,
         end: String
     ): Int
-    @Query("SELECT EXISTS(" + "SELECT 1 FROM days " + "WHERE date >= :start AND date <= :end" + ")")
+    @Query("SELECT EXISTS(SELECT 1 FROM days WHERE date >= :start AND date <= :end)")
     suspend fun hasEntriesInRange(
         start: String,
         end: String
@@ -84,7 +84,7 @@ object Entries {
         } == true }.map { it.date }
     }
     fun merge(old: List<DayEntry>, incoming: List<DayEntry>, replace: Boolean): List<DayEntry> {
-        require(incoming.map { it.date }.distinct().size == incoming.size) { "Doppelte Datumswerte" }
+        require(incoming.map { it.date }.distinct().size == incoming.size) { tr(R.string.data_duplicate_dates) }
         incoming.forEach { it.validate() }
         val existing = old.map { it.date }.toSet()
         return if (replace) incoming else incoming.filter { it.date !in existing }

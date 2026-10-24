@@ -82,11 +82,11 @@ object Reminders {
     fun createChannel(context: Context) {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Wochenrückblick",
+            tr(R.string.reminder_weekly_review),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description =
-                "Erinnert an eine noch nicht erfasste Vorwoche."
+                tr(R.string.reminder_reminds_you_when_the_previous_week_has_not)
         }
 
         context.getSystemService(NotificationManager::class.java)
@@ -289,14 +289,14 @@ object Reminders {
                     previousWeek.plusDays(6).format(dateFormat)
 
         val text =
-            "Für die Woche $range sind noch keine Tageswerte gespeichert."
+            tr(R.string.reminder_no_daily_entries_have_been_saved_for_yet, range)
 
         val notification = NotificationCompat.Builder(
             context,
             CHANNEL_ID
         )
             .setSmallIcon(R.drawable.ic_week_reminder)
-            .setContentTitle("Dein Wochenrückblick fehlt noch")
+            .setContentTitle(tr(R.string.reminder_your_weekly_review_is_still_missing))
             .setContentText(text)
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(text)
@@ -308,7 +308,7 @@ object Reminders {
             .setAutoCancel(true)
             .addAction(
                 0,
-                "Diese Woche pausieren",
+                tr(R.string.reminder_pause_for_this_week),
                 snoozePendingIntent
             )
             .build()

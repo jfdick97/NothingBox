@@ -168,7 +168,7 @@ fun CameraScreen(
                             ready = true
                         } catch (exception: Exception) {
                             model.message =
-                                "Kamera nicht verfügbar: ${exception.message}"
+                                tr(R.string.camera_camera_unavailable, exception.message)
                         }
                     }
                 },
@@ -223,7 +223,7 @@ fun CameraScreen(
 
                         if (cameraActive.get()) {
                             model.message =
-                                "Aufnahme fehlgeschlagen: ${exception.message}"
+                                tr(R.string.camera_could_not_take_the_photo, exception.message)
                         }
                     }
                 }
@@ -231,7 +231,7 @@ fun CameraScreen(
         } catch (exception: Exception) {
             taking = false
             model.message =
-                "Aufnahme fehlgeschlagen: ${exception.message}"
+                tr(R.string.camera_could_not_take_the_photo, exception.message)
         }
     }
 
@@ -274,7 +274,7 @@ fun CameraScreen(
                     Icon(
                         imageVector =
                             Icons.AutoMirrored.Filled.KeyboardReturn,
-                        contentDescription = "Zurück",
+                        contentDescription = tr(R.string.action_back),
                         tint = Color.White
                     )
                 }
@@ -303,16 +303,13 @@ fun CameraScreen(
                                     Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
-                                    text = "Wochenblatt scannen",
+                                    text = tr(R.string.camera_scan_weekly_sheet),
                                     style =
                                         MaterialTheme.typography.titleMedium
                                 )
 
                                 Text(
-                                    text = "Linke OnePager-Seite vollständig " +
-                                            "und möglichst eben aufnehmen. " +
-                                            "Alle vier L-Marken und der Punkt " +
-                                            "oben links müssen sichtbar sein.",
+                                    text = tr(R.string.camera_capture_the_entire_left_onepager_page_as_flat),
                                     style =
                                         MaterialTheme.typography.bodyMedium
                                 )
@@ -323,7 +320,7 @@ fun CameraScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "Hinweis schließen",
+                                    contentDescription = tr(R.string.camera_dismiss_instructions),
                                     tint = Color.White
                                 )
                             }
@@ -343,8 +340,7 @@ fun CameraScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Erlaube den Kamerazugriff oder öffne " +
-                                "über das Bild-Symbol ein vorhandenes Foto.",
+                        text = tr(R.string.camera_allow_camera_access_or_use_the_image_icon),
                         color = Color.White
                     )
 
@@ -353,7 +349,7 @@ fun CameraScreen(
                             permission.launch(Manifest.permission.CAMERA)
                         }
                     ) {
-                        Text("Kamerazugriff erlauben")
+                        Text(tr(R.string.camera_allow_camera_access))
                     }
                 }
             }
@@ -375,7 +371,7 @@ fun CameraScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .semantics {
-                            contentDescription = "Foto aufnehmen"
+                            contentDescription = tr(R.string.camera_take_photo)
                         }
                         .border(
                             width = 3.dp,
@@ -422,7 +418,7 @@ fun CameraScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Image,
-                            contentDescription = "Vorhandenes Foto öffnen"
+                            contentDescription = tr(R.string.camera_open_existing_photo)
                         )
                     }
                 }

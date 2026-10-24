@@ -24,16 +24,16 @@ object BackupJson {
         put("custom1",d.custom1); put("custom2",d.custom2)
     }
     fun parseDays(array: JSONArray): List<DayEntry> {
-        require(array.length() <= 100000) { "Zu viele Einträge." }
+        require(array.length() <= 100000) { tr(R.string.backup_too_many_entries) }
         val days = (0 until array.length()).map { i ->
             val j=array.getJSONObject(i); val a=j.getJSONArray("values")
-            require(a.length()==4) { "Vier Skalenwerte erforderlich." }
+            require(a.length()==4) { tr(R.string.backup_four_scale_values_are_required) }
             val v=(0..3).map { if (a.isNull(it)) null else a.getDouble(it) }
             DayEntry(j.getString("date"),v[0],v[1],v[2],v[3],j.getInt("factors"),
                 if(j.isNull("scanId")) null else j.getString("scanId"),
                 if(j.isNull("detected")) null else j.getString("detected"), j.getLong("updatedAt"),j.optString("custom1",""),j.optString("custom2","")).also { it.validate() }
         }
-        require(days.map { it.date }.distinct().size == days.size) { "Doppelte Tage in Sicherung." }
+        require(days.map { it.date }.distinct().size == days.size) { tr(R.string.backup_duplicate_days_in_backup) }
         return days
     }
 }
@@ -51,16 +51,16 @@ class BackupManager(private val context: Context, private val db: AppDatabase) {
                 put("aligned",s.aligned);put("template",s.template);put("createdAt",s.createdAt);put("diagnostics",s.diagnostics)
             } }))
             put("sha256",JSONObject().apply { files.forEach { name ->
-                val f=File(images,name); require(f.isFile) { "Scan-Datei fehlt: $name" }; put(name,sha(f))
+                val f=File(images,name); require(f.isFile) { tr(R.string.backup_scan_file_is_missing, name) }; put(name,sha(f))
             } })
         }
         val manifestBytes=manifest.toString(2).toByteArray()
         require(files.size<=10000 && manifestBytes.size<=8*1024*1024 && files.all { File(images,it).length()<=25L*1024*1024 } &&
-            files.sumOf { File(images,it).length() }+manifestBytes.size<=250L*1024*1024) { "Sicherung überschreitet die unterstützte Größe (250 MB insgesamt, 25 MB je Foto)." }
+            files.sumOf { File(images,it).length() }+manifestBytes.size<=250L*1024*1024) { tr(R.string.backup_backup_exceeds_the_supported_size_250_mb_in) }
         requireNotNull(context.contentResolver.openOutputStream(uri,"wt")).use { output ->
             ZipOutputStream(output).use { zip ->
                 zip.putNextEntry(ZipEntry("manifest.json")); zip.write(manifestBytes); zip.closeEntry()
-                files.forEach { name -> zip.putNextEntry(ZipEntry("images/$name")); File(images,name).inputStream().use { it.copyTo(zip) };zip.closeEntry() }
+                files.forEach { name -> zip.putNextEntry(ZipEntry("images/${name}")); File(images,name).inputStream().use { it.copyTo(zip) };zip.closeEntry() }
             }
         }
     }
@@ -82,45 +82,45 @@ class BackupManager(private val context: Context, private val db: AppDatabase) {
             ZipInputStream(requireNotNull(context.contentResolver.openInputStream(uri))).use { zip ->
                 while(true) {
                     val entry=zip.nextEntry ?: break
-                    require(!entry.isDirectory && ++count<=10001) { "Ungültiges Archiv oder zu viele Dateien." }
+                    require(!entry.isDirectory && ++count<=10001) { tr(R.string.backup_invalid_archive_or_too_many_files) }
                     val name=entry.name
-                    require(name=="manifest.json" || name.matches(Regex("images/[A-Za-z0-9_-]+\\.jpg"))) { "Unzulässiger Archivpfad." }
-                    require(names.add(name)) { "Doppelte Archivdatei." }
+                    require(name=="manifest.json" || name.matches(Regex("images/[A-Za-z0-9_-]+\\.jpg"))) { tr(R.string.backup_disallowed_archive_path) }
+                    require(names.add(name)) { tr(R.string.backup_duplicate_archive_file) }
                     val target=File(stage,name);target.parentFile?.mkdirs()
                     target.outputStream().use { out ->
                         val bytes=ByteArray(8192);var local=0L
                         while(true) { val n=zip.read(bytes);if(n<0)break
                             local+=n;total+=n
-                            require(local <= (if(name=="manifest.json") 8L else 25L)*1024*1024 && total<=250L*1024*1024) { "Sicherung zu groß (max. 250 MB, 25 MB je Foto)." }
+                            require(local <= (if(name=="manifest.json") 8L else 25L)*1024*1024 && total<=250L*1024*1024) { tr(R.string.backup_backup_is_too_large_maximum_250_mb_in) }
                             out.write(bytes,0,n)
                         }
                     };zip.closeEntry()
                 }
             }
             val root=JSONObject(File(stage,"manifest.json").readText())
-            require(root.getString("format")=="strain-gauge" && root.getInt("version") in 1..2) { "Unbekanntes Sicherungsformat." }
+            require(root.getString("format")=="strain-gauge" && root.getInt("version") in 1..2) { tr(R.string.backup_unknown_backup_format) }
             val days=BackupJson.parseDays(root.getJSONArray("days"))
-            require(root.getInt("version")!=1 || days.all{it.factors<=255}) { "Ungültige Faktoren in älterer Sicherung." }
+            require(root.getInt("version")!=1 || days.all{it.factors<=255}) { tr(R.string.backup_invalid_factors_in_an_older_backup) }
             val a=root.getJSONArray("scans");require(a.length()<=5000)
             val scans=(0 until a.length()).map { i -> val j=a.getJSONObject(i)
                 ScanEntry(j.getString("id"),j.getString("weekStart"),j.getString("original"),j.getString("aligned"),j.getString("template"),j.getLong("createdAt"),j.optString("diagnostics","[]"))
             }
-            require(scans.map{it.id}.distinct().size==scans.size) { "Doppelte Scan-IDs." }
+            require(scans.map{it.id}.distinct().size==scans.size) { tr(R.string.backup_duplicate_scan_ids) }
             val expected=mutableSetOf("manifest.json")
             val hashes=root.getJSONObject("sha256")
             scans.forEach { s ->
                 require(s.id.matches(Regex("[A-Za-z0-9_-]{1,100}")))
                 require(LocalDate.parse(s.weekStart).toString()==s.weekStart)
                 listOf(s.original,s.aligned).forEach { name ->
-                    require(name.matches(Regex("[A-Za-z0-9_-]+\\.jpg"))) { "Ungültiger Dateiname." }
-                    val f=File(stage,"images/$name")
-                    require(f.isFile && sha(f)==hashes.getString(name)) { "Foto fehlt oder Prüfsumme stimmt nicht." }
-                    expected.add("images/$name")
+                    require(name.matches(Regex("[A-Za-z0-9_-]+\\.jpg"))) { tr(R.string.backup_invalid_file_name) }
+                    val f=File(stage,"images/${name}")
+                    require(f.isFile && sha(f)==hashes.getString(name)) { tr(R.string.backup_a_photo_is_missing_or_its_checksum_does) }
+                    expected.add("images/${name}")
                 }
             }
-            require(names==expected) { "Unerwartete Dateien in Sicherung." }
+            require(names==expected) { tr(R.string.backup_unexpected_files_in_backup) }
             val ids=scans.map{it.id}.toSet()
-            require(days.all { it.scanId==null || it.scanId in ids }) { "Scan-Verweis fehlt." }
+            require(days.all { it.scanId==null || it.scanId in ids }) { tr(R.string.backup_missing_scan_reference) }
             return Archive(days,scans,stage)
         } catch(e: Exception) { stage.deleteRecursively();throw e }
     }
@@ -146,10 +146,10 @@ class BackupManager(private val context: Context, private val db: AppDatabase) {
                     if(existingId!=null){remap[s.id]=existingId;return@mapNotNull null}
                     val id=if(s.id in usedIds)UUID.randomUUID().toString() else s.id
                     usedIds.add(id);remap[s.id]=id;byFingerprint[fingerprint]=id
-                    val original="$id-original.jpg";val aligned="$id-aligned.jpg"
+                    val original="${id}-original.jpg";val aligned="${id}-aligned.jpg"
                     listOf(s.original to original,s.aligned to aligned).forEach { (old,new) ->
-                        val file=File(images,new);require(!file.exists()) { "Zieldatei bereits vorhanden." }
-                        made+=file;File(archive.directory,"images/$old").copyTo(file)
+                        val file=File(images,new);require(!file.exists()) { tr(R.string.backup_target_file_already_exists) }
+                        made+=file;File(archive.directory,"images/${old}").copyTo(file)
                     }
                     s.copy(id=id,original=original,aligned=aligned)
                 }

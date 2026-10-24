@@ -45,7 +45,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
         if(busy)return
         viewModelScope.launch {
             busy=true
-            try { action() } catch(e:Exception) { message=e.message ?: "Vorgang fehlgeschlagen." }
+            try { action() } catch(e:Exception) { message=e.message ?: tr(R.string.message_the_operation_failed) }
             finally { busy=false }
         }
     }
@@ -63,7 +63,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
                 requireNotNull(getApplication<Application>().contentResolver.openInputStream(uri)).use { input ->
                     f.outputStream().use { output ->
                         val buffer=ByteArray(8192);var total=0L
-                        while(true){val n=input.read(buffer);if(n<0)break;total+=n;require(total<35L*1024*1024){"Bild größer als 35 MB."};output.write(buffer,0,n)}
+                        while(true){val n=input.read(buffer);if(n<0)break;total+=n;require(total<35L*1024*1024){tr(R.string.message_image_is_larger_than_35_mb)};output.write(buffer,0,n)}
                     }
                 }
             }
@@ -138,10 +138,10 @@ class AppModel(app: Application): AndroidViewModel(app) {
         }
 
         message =
-            "Woche gelöscht: $deletedDays Tage und $deletedScans Scans."
+            tr(R.string.message_week_deleted_days_and_scans, deletedDays, deletedScans)
 
         if (failedPhotos > 0) {
-            message = message + " $failedPhotos Foto-Dateien konnten nicht gelöscht werden."
+            message = message + tr(R.string.message_photo_files_could_not_be_deleted, failedPhotos)
         }
     }
     fun testScan() = runJob {
@@ -152,8 +152,8 @@ class AppModel(app: Application): AndroidViewModel(app) {
         clearDraft();draft=result
         editedValues=(0..6).map { d -> (0..3).map { m -> result.values[m][d] } }
         editedFactors=result.factors;editedCustom1="";editedCustom2="";changeWeek(monday().toString());screen=Screen.REVIEW
-        editedCustom1="Testfaktor 1";editedCustom2="Testfaktor 2"
-        message="Künstliches Testblatt. Speichern legt echte Einträge an; zum Testen kannst du abbrechen."
+        editedCustom1=tr(R.string.message_sample_factor_1);editedCustom2=tr(R.string.message_sample_factor_2)
+        message=tr(R.string.message_synthetic_sample_sheet_saving_creates_real_entries_you)
     }
     fun customLabels()=factorNames.take(8)+listOf(editedCustom1.ifBlank{factorNames[8]},editedCustom2.ifBlank{factorNames[9]})
     fun changeWeek(value:String) {
@@ -171,7 +171,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
     }
     private fun draftDays(id:String):List<DayEntry> {
         val start=LocalDate.parse(week)
-        require(start.dayOfWeek==DayOfWeek.MONDAY){"Bitte den Montag als Wochenbeginn auswählen."}
+        require(start.dayOfWeek==DayOfWeek.MONDAY){tr(R.string.message_please_choose_monday_as_the_start_of_the)}
         val result=requireNotNull(draft)
         return (0..6).mapNotNull { d ->
             val v=editedValues[d]
@@ -182,14 +182,14 @@ class AppModel(app: Application): AndroidViewModel(app) {
     }
     fun saveDraft(replace:Boolean?=null) = runJob {
         val id=UUID.randomUUID().toString();val incoming=draftDays(id)
-        require(incoming.isNotEmpty()){ "Keine Werte vorhanden. Mindestens einen Wert setzen oder abbrechen." }
+        require(incoming.isNotEmpty()){ tr(R.string.message_no_values_available_enter_at_least_one_value) }
         val existing=withContext(Dispatchers.IO){store.days()}
         val overlaps=incoming.filter { n -> existing.any { it.date==n.date } }.map{it.date}
         if(replace==null && overlaps.isNotEmpty()){saveConflicts=overlaps;return@runJob}
         val selected=Entries.merge(existing,incoming,replace==true)
-        if(selected.isEmpty()){saveConflicts=null;message="Vorhandene Daten beibehalten.";return@runJob}
+        if(selected.isEmpty()){saveConflicts=null;message=tr(R.string.message_existing_data_kept);return@runJob}
         val result=requireNotNull(draft);val directory=File(getApplication<Application>().filesDir,"scans").apply{mkdirs()}
-        val original=File(directory,"$id-original.jpg");val aligned=File(directory,"$id-aligned.jpg")
+        val original=File(directory,"${id}-original.jpg");val aligned=File(directory,"${id}-aligned.jpg")
         withContext(Dispatchers.IO){
             try {
                 // Re-encode: gallery input may be PNG/HEIC despite the temporary suffix.
@@ -202,7 +202,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
                 }
             }catch(e:Exception){original.delete();aligned.delete();throw e}
         }
-        saveConflicts=null;clearDraft();screen=Screen.DASHBOARD;message="${selected.size} Tage gespeichert."
+        saveConflicts=null;clearDraft();screen=Screen.DASHBOARD;message=tr(R.string.message_days_saved, selected.size)
     }
     fun clearDraft() {
         draft?.let { listOf(it.original,it.aligned,it.overlay).forEach { f -> if(f.parentFile==getApplication<Application>().cacheDir)f.delete() } }
@@ -210,7 +210,7 @@ class AppModel(app: Application): AndroidViewModel(app) {
     }
     fun export(uri:Uri,zip:Boolean)=runJob {
         withContext(Dispatchers.IO){if(zip)backup.exportZip(uri) else backup.exportCsv(uri)}
-        message=if(zip)"Vollständige Sicherung exportiert." else "CSV exportiert."
+        message=if(zip)tr(R.string.message_full_backup_exported) else tr(R.string.message_csv_exported)
     }
     fun exportBeforeDelete(uri: Uri) = runJob {
         message = null
@@ -272,10 +272,9 @@ class AppModel(app: Application): AndroidViewModel(app) {
         screen = Screen.DASHBOARD
 
         message = if (filesDeleted) {
-            "Alle Messwerte und gespeicherten Scans wurden gelöscht."
+            tr(R.string.message_all_values_and_saved_scans_have_been_deleted)
         } else {
-            "Die Datenbank wurde geleert. Einige Foto- oder " +
-                    "Cache-Dateien konnten jedoch nicht gelöscht werden."
+            tr(R.string.message_the_database_has_been_cleared_some_photo_or)
         }
     }
     fun inspectImport(uri:Uri)=runJob {
@@ -287,19 +286,19 @@ class AppModel(app: Application): AndroidViewModel(app) {
     fun importArchive(replace:Boolean)=runJob {
         val a=requireNotNull(archive)
         withContext(Dispatchers.IO){backup.importArchive(a,replace)}
-        archive=null;message="Import abgeschlossen.";screen=Screen.DASHBOARD
+        archive=null;message=tr(R.string.message_import_complete);screen=Screen.DASHBOARD
     }
     fun cancelImport(){archive?.directory?.deleteRecursively();archive=null}
     fun updateDay(day:DayEntry)=runJob {
         day.validate();withContext(Dispatchers.IO){store.putDays(listOf(day.copy(updatedAt=System.currentTimeMillis())))}
-        message="Eintrag aktualisiert."
+        message=tr(R.string.message_entry_updated)
     }
-    fun deleteDay(date:String)=runJob {withContext(Dispatchers.IO){store.deleteDay(date)};message="Tag gelöscht."}
+    fun deleteDay(date:String)=runJob {withContext(Dispatchers.IO){store.deleteDay(date)};message=tr(R.string.message_day_deleted)}
     fun deleteScan(scan:ScanEntry)=runJob {
         withContext(Dispatchers.IO){
             db.withTransaction{store.unlinkScan(scan.id);store.deleteScan(scan.id)}
-            listOf(scan.original,scan.aligned).forEach { File(getApplication<Application>().filesDir,"scans/$it").delete() }
-        };message="Scan gelöscht; Tageswerte bleiben erhalten."
+            listOf(scan.original,scan.aligned).forEach { File(getApplication<Application>().filesDir,"scans/${it}").delete() }
+        };message=tr(R.string.message_scan_deleted_daily_values_were_kept)
     }
     override fun onCleared(){clearDraft();cancelImport();db.close()}
 }
