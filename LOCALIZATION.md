@@ -1,7 +1,7 @@
 # App languages
 
 NothingBox supports German, English, and the device's language preference. Choose
-**Menu → Sprache / Language**. The app uses AppCompat's per-app locale API and
+**the language icon between saved scans and the menu in the dashboard toolbar**. The app uses AppCompat's per-app locale API and
 stores the choice across launches, including on Android 8–12. Android 13+ also
 exposes the supported languages in system app settings. An unsupported system
 language falls back to the German text resources.
@@ -11,7 +11,7 @@ language falls back to the German text resources.
 - Default text: `app/src/main/res/values/strings.xml` (German).
 - English: `app/src/main/res/values-en/strings.xml`.
 - Supported languages: `app/src/main/res/xml/locales_config.xml`.
-- `LanguageSettings` is the menu selector.
+- `LanguageSettings` is shown in a dialog opened by the dashboard language icon.
 - `AppStrings` retains only the Application context and resolves resources using
   `ContextCompat.getContextForLanguage`. It works in Compose event callbacks,
   ViewModels, and reminder receivers, including before an Activity is opened.
@@ -54,7 +54,7 @@ assertions in `LocalizationTest` need an emulator or connected phone to execute.
 
 Manual device checks:
 
-1. Switch German → English → system default; revisit the menu and restart the app.
+1. Switch German → English → system default; reopen the language dialog and restart the app.
 2. Verify the choice and its radio button, including when system and app language
    happen to be the same.
 3. Check dashboard, stress statistics, trend messages, week picker, scan review,
