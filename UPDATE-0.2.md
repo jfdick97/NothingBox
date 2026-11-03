@@ -1,5 +1,7 @@
 # Update auf 0.2 – OnePager mit L-Marken
 
+> Historische Anleitung für Version 0.2. Für den aktuellen Stand NothingBox 1.3.0 bitte [UPDATE-1.3.md](UPDATE-1.3.md) und [README.md](README.md) verwenden. Die folgenden Angaben beschreiben den damaligen Update-Schritt.
+
 ## Dein vorhandenes Projekt aktualisieren
 
 1. In der bisherigen App eine ZIP-Sicherung exportieren.

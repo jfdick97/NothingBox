@@ -1,15 +1,34 @@
-EINE WOCHE IM BLICK – VERSION 0.2
+NOTHINGBOX – VERSION 1.3.0
 
-Bei bereits installierter Version zuerst UPDATE-0.2.md lesen.
+Bei bereits installierter Version zuerst UPDATE-1.3.md lesen.
+Vor einem Update eine vollständige ZIP-Sicherung exportieren.
 
-1. Archiv entpacken, StrainGauge in Android Studio öffnen.
-2. Gradle synchronisieren, JVM 17 oder 21 / SDK 35.
-3. Smartphone mit USB-Debugging verbinden, Run -> app.
-4. Menü -> Künstliches Testblatt auswerten.
-5. Eigenes Foto: + -> Vorhandenes Foto öffnen.
+1. Repository klonen oder Quellcodearchiv vollständig entpacken.
+2. In Android Studio den Projektordner mit settings.gradle.kts öffnen.
+3. Gradle synchronisieren: JVM 17 oder 21 / SDK 35.
+4. Smartphone mit USB-Debugging verbinden, Run -> app.
+5. Menü -> Künstliches Testblatt auswerten. Erst Speichern legt Daten an.
+6. Eigenes Foto: + -> Vorhandenes Foto öffnen; Papierwoche auswählen,
+   Werte und Zusatznamen prüfen und dann speichern.
+7. Sprache: Sprachsymbol zwischen Scans und Menü im Dashboard öffnen;
+   Deutsch, Englisch oder Systemsprache wählen.
+8. Stress-Statistik unter den Diagrammen einblenden. Der Stressindex
+   braucht alle vier Tageswerte; der Zeitraum folgt der Diagrammauswahl.
+9. Menü -> Erinnerungen: Android-Benachrichtigungen erlauben,
+   Vorwoche leer und aktuelle Woche nicht pausiert lassen,
+   dann "Erinnerung jetzt prüfen" auslösen.
 
-OnePager.pdf: neue Vorlage, linke Seite mit L-Marken.
-ERKENNUNG_BEISPIEL.jpg: Auswertung des bereitgestellten Fotos.
-README.md: ausführliche Anleitung.
+Android 8/API 26 oder neuer. Helles/dunkles Design folgt dem System.
+Android 13+: Benachrichtigungsberechtigung und System-App-Sprache beachten.
+Ohne Freigabe für exakte Alarme kann Android die 06:00-Erinnerung verzögern.
+
+OnePager.pdf: Vorlage, linke Seite mit L-Marken.
+Arbeitsblatt.pdf: weiterhin unterstützte BC-02-Vorlage.
+ERKENNUNG_BEISPIEL.jpg: Host-Auswertung des bereitgestellten Fotos.
+README.md: Bedienung, Export/Import und Build.
+LOCALIZATION.md: Sprachressourcen und Übersetzungspflege (Englisch).
+GERAETEVALIDIERUNG-1.3.md: geordnete Emulator-/Telefonprüfung.
+PRUEFSTATUS.md: Nachweise und noch offene Gerätetests.
 
 Die App arbeitet offline. Der erste Build am Rechner braucht Internet.
+Ein erfolgreicher Build ist noch keine Gerätevalidierung.
