@@ -286,6 +286,13 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
         )
     }
 
+    var smoothingDays by rememberSaveable {
+        mutableIntStateOf(
+            displayPreferences.getInt("smoothing_days", 7)
+                .takeIf { it in listOf(3, 7, 10) } ?: 7
+        )
+    }
+
     var showStressStatistics by rememberSaveable {
         mutableStateOf(
             displayPreferences.getBoolean(
@@ -302,6 +309,27 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
         PeriodSelector(
             selectedPeriod = period,
             onPeriodSelected = { period = it }
+        )
+        Text(tr(R.string.plot_smoothing), style = MaterialTheme.typography.titleSmall)
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(3, 7, 10).forEach { width ->
+                FilterChip(
+                    selected = smoothingDays == width,
+                    onClick = {
+                        smoothingDays = width
+                        displayPreferences.edit().putInt("smoothing_days", width).apply()
+                    },
+                    label = { Text(tr(R.string.plot_smoothing_days, width)) }
+                )
+            }
+        }
+        Text(
+            tr(R.string.plot_smoothing_explanation),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(tr(R.string.ui_recorded_days, start.format(german), end.format(german), days.size),style=MaterialTheme.typography.labelMedium)
         if(all.isEmpty()){
@@ -324,7 +352,7 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
                         Text(name,style=MaterialTheme.typography.titleMedium,color=metricColors[m])
                         Text(if(values.isEmpty())tr(R.string.ui_no_values) else "Ø ${number(values.average())}",style=MaterialTheme.typography.labelLarge)
                     }
-                    Plot(days,m,start,end,metricColors[m])
+                    Plot(days,m,start,end,metricColors[m],smoothingDays)
                     val latest=days.lastOrNull{it.values()[m]!=null}
                     Text(if(latest==null)tr(R.string.ui_no_value_recorded_yet) else tr(R.string.ui_latest, number(latest.values()[m]), displayDate(latest.date)),style=MaterialTheme.typography.labelSmall)
                 }
@@ -360,7 +388,8 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
             StressStatisticsCard(
                 days = days,
                 start = start,
-                end = end
+                end = end,
+                smoothingDays = smoothingDays
             )
         }
         val selectedWeek = LocalDate.parse(selectedWeekText)
@@ -485,7 +514,8 @@ fun Dashboard(all:List<DayEntry>,onOpenEntries: () -> Unit){
 fun StressStatisticsCard(
     days: List<DayEntry>,
     start: LocalDate,
-    end: LocalDate
+    end: LocalDate,
+    smoothingDays: Int
 ) {
     val values = days.mapNotNull {
         it.stressIndex()
@@ -552,6 +582,7 @@ fun StressStatisticsCard(
                     start = start,
                     end = end,
                     color = stressColor,
+                    smoothingDays = smoothingDays,
                     valueOf = { day ->
                         day.stressIndex()
                     }
@@ -717,24 +748,34 @@ fun EntriesScreen(
 }
 
 @Composable
-fun ValuePlot(days:List<DayEntry>,start:LocalDate,end:LocalDate,color:Color,valueOf: (DayEntry) -> Double?){
+fun ValuePlot(days:List<DayEntry>,start:LocalDate,end:LocalDate,color:Color,smoothingDays:Int,valueOf: (DayEntry) -> Double?){
+    val sortedDays = remember(days) { days.sortedBy { it.date } }
+    val smoothed = remember(sortedDays, smoothingDays, valueOf) {
+        binomialSmoothing(sortedDays, smoothingDays, valueOf)
+    }
     val axis = MaterialTheme.colorScheme.outlineVariant
     Row(Modifier.fillMaxWidth().height(140.dp)){
         Column(Modifier.width(24.dp).fillMaxHeight(),verticalArrangement=Arrangement.SpaceBetween){listOf("10","5","0").forEach{Text(it,style=MaterialTheme.typography.labelSmall)}}
         Canvas(Modifier.weight(1f).fillMaxHeight().padding(vertical=6.dp)){
             val span=max(1L,end.toEpochDay()-start.toEpochDay()).toFloat()
             listOf(0f,.5f,1f).forEach{fraction ->drawLine(axis,Offset(0f,size.height*fraction),Offset(size.width,size.height*fraction),1.dp.toPx())}
+            drawSmoothedSeries(smoothed, start, end, color)
             var previous:Pair<DayEntry,Offset>?=null
-            days.forEach{day ->
+            sortedDays.forEach{day ->
                 val value=valueOf(day)
                 if(value==null){previous=null;return@forEach}
                 val point=Offset((LocalDate.parse(day.date).toEpochDay()-start.toEpochDay())/span*size.width,(1-value.toFloat()/10)*size.height)
                 previous?.let{(before,p) ->
-                    if(LocalDate.parse(day.date).toEpochDay()-LocalDate.parse(before.date).toEpochDay()==1L)drawLine(color,p,point,2.dp.toPx())
+                    if(LocalDate.parse(day.date).toEpochDay()-LocalDate.parse(before.date).toEpochDay()==1L)drawLine(color.copy(alpha = 0.35f),p,point,1.dp.toPx())
                 }
                 drawCircle(color,3.dp.toPx(),point);previous=day to point
             }
         }
+    }
+    if (smoothed.isEmpty()) {
+        Text(tr(R.string.plot_smoothing_no_window, smoothingDays),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     Row(Modifier.fillMaxWidth().padding(start=24.dp),horizontalArrangement=Arrangement.SpaceBetween){
         Text(start.format(DateTimeFormatter.ofPattern(if (AppStrings.locale.language == "de") "dd.MM." else "MM/dd")),style=MaterialTheme.typography.labelSmall)
@@ -743,12 +784,13 @@ fun ValuePlot(days:List<DayEntry>,start:LocalDate,end:LocalDate,color:Color,valu
 }
 
 @Composable
-fun Plot(days: List<DayEntry>, metric: Int, start: LocalDate, end: LocalDate, color: Color) {
+fun Plot(days: List<DayEntry>, metric: Int, start: LocalDate, end: LocalDate, color: Color, smoothingDays: Int) {
     ValuePlot(
         days = days,
         start = start,
         end = end,
         color = color,
+        smoothingDays = smoothingDays,
         valueOf = { day ->
             day.values()[metric]
         }
