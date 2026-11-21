@@ -275,4 +275,8 @@
     <string name="week_previous_week" formatted="false">"Vorherige Woche"</string>
     <string name="week_previous_year" formatted="false">"Vorheriges Jahr"</string>
     <string name="week_week">"KW %1$s · %2$s"</string>
+    <string name="plot_smoothing">Glättung aller Diagramme</string>
+    <string name="plot_smoothing_days">%1$d Tage</string>
+    <string name="plot_smoothing_explanation">Punkte: Tageswerte · kräftige Linie: Binomialmittel · Band: ± eine gewichtete Standardabweichung. Nur vollständige Zeitfenster im gewählten Zeitraum werden ausgewertet.</string>
+    <string name="plot_smoothing_no_window">Für die Glättung fehlen %1$d aufeinanderfolgende Tage mit vollständigen Werten.</string>
 </resources>

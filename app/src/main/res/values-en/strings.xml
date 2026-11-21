@@ -272,4 +272,8 @@
     <string name="week_previous_week" formatted="false">"Previous week"</string>
     <string name="week_previous_year" formatted="false">"Previous year"</string>
     <string name="week_week">"Week %1$s · %2$s"</string>
+    <string name="plot_smoothing">Smoothing for all charts</string>
+    <string name="plot_smoothing_days">%1$d days</string>
+    <string name="plot_smoothing_explanation">Dots: daily values · bold line: binomial mean · band: ± one weighted standard deviation. Only complete windows within the selected period are evaluated.</string>
+    <string name="plot_smoothing_no_window">Smoothing requires %1$d consecutive days with complete values.</string>
 </resources>
